@@ -1,5 +1,5 @@
+import 'package:rentra/Data/datasources/property_remote_datasource.dart';
 import 'package:rentra/core/models/property.dart';
-import 'package:rentra/data/datasources/property_remote_datasource.dart';
 
 abstract class IPropertyRepository {
   Future<List<Property>> getAllProperties();
@@ -9,8 +9,8 @@ abstract class IPropertyRepository {
 class PropertyRepository implements IPropertyRepository {
   final PropertyRemoteDataSource remoteDataSource;
 
-  PropertyRepository({required this.remoteDataSource});
-
+  PropertyRepository(this.remoteDataSource);
+  
   @override
   Future<List<Property>> getAllProperties() async {
     try {

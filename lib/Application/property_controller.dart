@@ -4,7 +4,7 @@ import 'package:rentra/core/models/property.dart';
 class PropertyController {
   final PropertyRepository repository;
 
-  PropertyController({required this.repository});
+  PropertyController(this.repository);
 
   Future<List<Property>> fetchProperties() async {
     try {
@@ -14,7 +14,6 @@ class PropertyController {
     }
   }
 
-  // Add more business logic here
   Future<Property?> getPropertyById(int id) async {
     return await repository.getPropertyById(id);
   }

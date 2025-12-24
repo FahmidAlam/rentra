@@ -32,7 +32,7 @@ class PropertyRemoteDataSource implements IPropertyRemoteDataSource {
           .eq('id', id)
           .single();
 
-      return Property.fromJson(response as Map<String, dynamic>);
+      return Property.fromJson(response);
     } catch (e) {
       throw Exception('Failed to fetch property: $e');
     }

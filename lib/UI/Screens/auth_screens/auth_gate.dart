@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
-import '../../../Application/auth_controller.dart';
-import 'login_screen.dart';
-
+import 'package:rentra/Application/auth_controller.dart';
+import 'package:rentra/UI/Screens/auth_screens/login_screen.dart';
 import 'package:rentra/UI/Screens/property_list_screen.dart';
 import 'package:rentra/core/app_dependencies.dart';
 
@@ -15,45 +13,55 @@ class AuthGate extends StatefulWidget {
 }
 
 class _AuthGateState extends State<AuthGate> {
-  final _authController = AuthController();
-  final controller = AppDependencies.propertyController;
+  final AuthController _authController = AuthController();
+
+  Widget? _destination;
+
   @override
   void initState() {
     super.initState();
-    _handleAuth();
+    _resolveAuth();
   }
 
-  Future<void> _handleAuth() async {
+  Future<void> _resolveAuth() async {
     final session = Supabase.instance.client.auth.currentSession;
 
     if (session == null) {
-      _go(const LoginScreen());
+      if (!mounted) return;
+      setState(() {
+        _destination = const LoginScreen();
+      });
       return;
     }
 
-    final role = await _authController.fetchUserRole(session.user.id);
+    try {
+      await _authController.fetchUserRole(session.user.id);
 
-    // if (role == 'owner') {
-    //   _go(const OwnerHomeScreen());
-    // } else {
-    //   _go(const PropertyListScreen());
-    // }
-    _go(
-      PropertyListScreen(propertyController: controller)
-    );
-  }
-
-  void _go(Widget page) {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => page),
-    );
+      if (!mounted) return;
+      setState(() {
+        _destination = PropertyListScreen(
+          propertyController: AppDependencies.propertyController,
+        );
+      });
+    } catch (err) {
+      if (!mounted) return;
+      // If role fetch fails, fall back to property list (or adjust as needed)
+      setState(() {
+        _destination = PropertyListScreen(
+          propertyController: AppDependencies.propertyController,
+        );
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: CircularProgressIndicator()),
-    );
+    if (_destination == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    return _destination!;
   }
 }

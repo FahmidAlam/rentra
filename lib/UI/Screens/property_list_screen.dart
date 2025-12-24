@@ -6,15 +6,18 @@ import 'package:rentra/core/models/property.dart';
 class PropertyListScreen extends StatelessWidget {
   final PropertyController propertyController;
 
-  const PropertyListScreen({
-    super.key,
-    required this.propertyController,
-  });
+  const PropertyListScreen({super.key, required this.propertyController});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Public Properties')),
+      appBar: AppBar(
+        title: const Text(
+          'Public Properties',
+          style: TextStyle(color: Color.fromARGB(255, 3, 56, 99), fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+      ),
       body: FutureBuilder<List<Property>>(
         future: propertyController.fetchProperties(),
         builder: (context, snapshot) {
@@ -25,7 +28,7 @@ class PropertyListScreen extends StatelessWidget {
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(child: Text('No properties found'));
           }
-          
+
           final properties = snapshot.data ?? [];
           return PropertyGrid(properties: properties);
         },

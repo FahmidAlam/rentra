@@ -32,6 +32,8 @@ class _MainShellState extends State<MainShell> {
       body: _buildBody(),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
+        selectedItemColor: Colors.blue, 
+        unselectedItemColor: const Color.fromARGB(255, 233, 76, 37),       
         onTap: (index) {
           setState(() {
             _currentIndex = index;
@@ -50,6 +52,7 @@ class _MainShellState extends State<MainShell> {
             icon: Icon(Icons.person),
             label: 'Profile',
           ),
+          BottomNavigationBarItem(icon:   Icon(Icons.settings), label: 'Settings'),
         ],
       ),
     );
@@ -68,7 +71,7 @@ class _MainShellState extends State<MainShell> {
         return const Center(
           child: Text(
             'Properties (Coming Soon)',
-            style: TextStyle(fontSize: 18),
+            style: TextStyle(fontSize: 18,color: Colors.blue),
           ),
         );
 
@@ -80,7 +83,14 @@ class _MainShellState extends State<MainShell> {
             style: TextStyle(fontSize: 18),
           ),
         );
-
+      case 3:
+        // Placeholder
+        return const Center(
+          child: Text(
+            'Settings (Coming Soon)',
+            style: TextStyle(fontSize: 18),
+          ),
+        );
       default:
         return const SizedBox();
     }

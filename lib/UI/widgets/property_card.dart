@@ -20,7 +20,7 @@ class PropertyCard extends StatelessWidget {
           color: Colors.grey[200],
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withOpacity(0.3),
               blurRadius: 5,
               offset: const Offset(2, 3),
             ),

@@ -6,20 +6,22 @@ class AuthController {
 
   User? get currentUser => _client.auth.currentUser;
 
-  Future<AuthResponse> login(String email, String password) async{
-    return await _client.auth.signInWithPassword(email: email,password: password);
+  Future<AuthResponse> login(String email, String password) async {
+    return await _client.auth.signInWithPassword(
+      email: email,
+      password: password,
+    );
   }
-  Future<AuthResponse> register(String email,String password) async{
-    return await _client.auth.signUp(email:email,password: password);
+
+  Future<AuthResponse> register(String email, String password) async {
+    return await _client.auth.signUp(email: email, password: password);
   }
+
   Future<void> saveUserRole({
     required String userId,
     required String role,
   }) async {
-    await _client.from('profiles').insert({
-      'id': userId,
-      'role': role,
-    });
+    await _client.from('profiles').insert({'id': userId, 'role': role});
   }
 
   // FETCH ROLE

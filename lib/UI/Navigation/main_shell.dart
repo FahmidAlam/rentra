@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:rentra/Application/property_controller.dart';
 import 'package:rentra/Data/datasources/property_remote_datasource.dart';
 import 'package:rentra/Data/repositories/property_repository.dart';
+import 'package:rentra/UI/Screens/profile_screen.dart';
 import 'package:rentra/UI/Screens/property_list_screen.dart';
 
 class MainShell extends StatefulWidget {
@@ -76,13 +77,8 @@ class _MainShellState extends State<MainShell> {
         );
 
       case 2:
-        // Placeholder
-        return const Center(
-          child: Text(
-            'Profile (Coming Soon)',
-            style: TextStyle(fontSize: 18),
-          ),
-        );
+        return const ProfileScreen();
+
       case 3:
         // Placeholder
         return const Center(

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-
 import 'package:rentra/Application/auth_controller.dart';
-import 'package:rentra/UI/Screens/auth_screens/auth_gate.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {

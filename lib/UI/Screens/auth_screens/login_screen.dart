@@ -30,14 +30,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       await _authController.login(email, password);
-
-      if (!mounted) return;
-
-      // 🔑 AuthGate decides where to go next
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const AuthGate()),
-      );
     } catch (e) {
       if (!mounted) return;
 

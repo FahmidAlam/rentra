@@ -4,6 +4,15 @@ import 'package:rentra/core/models/property.dart';
 abstract class IPropertyRepository {
   Future<List<Property>> getAllProperties();
   Future<Property?> getPropertyById(int id);
+  Future<void> addProperty({
+    required String ownerId,
+    required String title,
+    required String address,
+    required String city,
+    required String description,
+    required String coverImageUrl,
+    required List<String> galleryImages,
+  });
 }
 
 class PropertyRepository implements IPropertyRepository {
@@ -27,5 +36,29 @@ class PropertyRepository implements IPropertyRepository {
     } catch (e) {
       throw Exception('Repository error: $e');
     }
+  }
+  @override
+  Future<void> addProperty({
+    required String ownerId,
+    required String title,
+    required String address,
+    required String city,
+    required String description,
+    required String coverImageUrl,
+    required List<String> galleryImages,
+  }) async {
+    final propertyId = await remoteDataSource.insertProperty(
+      ownerId: ownerId,
+      title: title,
+      address: address,
+      city: city,
+      description: description,
+      coverImageUrl: coverImageUrl,
+    );
+
+    await remoteDataSource.insertPropertyImages(
+      propertyId: propertyId,
+      imageUrls: galleryImages,
+    );
   }
 }

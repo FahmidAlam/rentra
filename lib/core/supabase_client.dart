@@ -1,7 +1,9 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SupabaseManager{
-  static final supabase = Supabase.instance.client;
+  //static final supabase = Supabase.instance.client;
+  static SupabaseClient get supabase => Supabase.instance.client;
+
   static Future<void> init() async{
     await Supabase.initialize(
       url: "https://eurtzaffqqgmzdywdmcy.supabase.co",

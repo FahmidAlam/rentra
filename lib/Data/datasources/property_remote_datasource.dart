@@ -4,6 +4,18 @@ import 'package:rentra/core/supabase_client.dart';
 abstract class IPropertyRemoteDataSource {
   Future<List<Property>> fetchAllProperties();
   Future<Property?> fetchPropertyById(int id);
+  Future<int> insertProperty({
+    required String ownerId,
+    required String title,
+    required String address,
+    required String city,
+    required String description,
+    required String coverImageUrl,
+  });
+  Future<void> insertPropertyImages({
+    required int propertyId,
+    required List<String> imageUrls,
+  });
 }
 
 class PropertyRemoteDataSource implements IPropertyRemoteDataSource {
@@ -36,5 +48,47 @@ class PropertyRemoteDataSource implements IPropertyRemoteDataSource {
     } catch (e) {
       throw Exception('Failed to fetch property: $e');
     }
+  }
+
+  @override
+  Future<int> insertProperty({
+    required String ownerId,
+    required String title,
+    required String address,
+    required String city,
+    required String description,
+    required String coverImageUrl,
+  }) async {
+    final response = await SupabaseManager.supabase
+        .from('properties')
+        .insert({
+          'owner_id': ownerId,
+          'title': title,
+          'address': address,
+          'city': city,
+          'description': description,
+          'image_url': coverImageUrl,
+        })
+        .select()
+        .single();
+
+    return response['id'] as int;
+  }
+  @override
+  Future<void> insertPropertyImages({
+    required int propertyId,
+    required List<String> imageUrls,
+  }) async {
+    if (imageUrls.isEmpty) return;
+
+    final images = imageUrls.asMap().entries.map((entry) {
+      return {
+        'property_id': propertyId,
+        'image_url': entry.value,
+        'position': entry.key,
+      };
+    }).toList();
+
+    await SupabaseManager.supabase.from('property_images').insert(images);
   }
 }

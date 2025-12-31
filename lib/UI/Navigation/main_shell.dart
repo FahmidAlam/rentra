@@ -3,7 +3,8 @@ import 'package:rentra/Application/property_controller.dart';
 import 'package:rentra/Application/role_controller.dart';
 import 'package:rentra/Data/datasources/property_remote_datasource.dart';
 import 'package:rentra/Data/repositories/property_repository.dart';
-import 'package:rentra/UI/Screens/add_prperty_screen.dart';
+import 'package:rentra/UI/Screens/add_property_screen.dart';
+import 'package:rentra/UI/Screens/my_properties_screen.dart';
 import 'package:rentra/UI/Screens/profile_screen.dart';
 import 'package:rentra/UI/Screens/property_list_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -39,6 +40,9 @@ class _MainShellState extends State<MainShell> {
     final repository = PropertyRepository(remoteDataSource);
     propertyController = PropertyController(repository);
 
+    //! 
+    propertyController.fetchProperties();
+
     // Load user role ONCE when MainShell starts
     final user = Supabase.instance.client.auth.currentUser;
     if (user != null) {
@@ -61,8 +65,8 @@ class _MainShellState extends State<MainShell> {
 
     return Scaffold(
       body: _buildBody(),
-      // 🔹 OWNER-ONLY FAB (Add Property)
-      floatingActionButton: roleController.isOwner
+      // 🔹 OWNER-ONLY FAB (Add Property): show only on "My Properties" tab
+      floatingActionButton: (roleController.isOwner && _currentIndex == 1)
           ? FloatingActionButton(
               onPressed: () {
                 Navigator.push(
@@ -124,14 +128,12 @@ class _MainShellState extends State<MainShell> {
         // Public property listing (shared)
         return PropertyListScreen(propertyController: propertyController);
 
+
       case 1:
         // Role-specific behavior
         if (roleController.isOwner) {
-          return const Center(
-            child: Text(
-              'Owner: Manage My Properties',
-              style: TextStyle(fontSize: 18, color: Colors.blue),
-            ),
+          return MyPropertiesScreen(
+            propertyController: propertyController,
           );
         } else {
           return const Center(

@@ -21,18 +21,34 @@ class AuthController {
     required String userId,
     required String role,
   }) async {
-    await _client.from('profiles').insert({'id': userId, 'role': role});
+    // Ensure we don't error on duplicate primary key: upsert if profile exists
+    try {
+      final existing = await _client.from('profiles').select('id').eq('id', userId).maybeSingle();
+      if (existing == null) {
+        await _client.from('profiles').insert({'id': userId, 'role': role});
+      } else {
+        await _client.from('profiles').update({'role': role}).eq('id', userId);
+      }
+    } catch (e) {
+      throw Exception('Failed to save user role: $e');
+    }
   }
 
   // FETCH ROLE
   Future<String?> fetchUserRole(String userId) async {
-    final res = await _client
-        .from('profiles')
-        .select('role')
-        .eq('id', userId)
-        .single();
+    try {
+      final res = await _client
+          .from('profiles')
+          .select('role')
+          .eq('id', userId)
+          .maybeSingle();
 
-    return res['role'];
+      if (res == null) return null;
+      return res['role'] as String?;
+    } catch (e) {
+      // If the profiles table or query fails, surface a clear exception
+      throw Exception('Failed to fetch user role: $e');
+    }
   }
 
   Future<void> logout() async {

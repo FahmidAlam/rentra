@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:rentra/core/models/property.dart';
+import 'package:rentra/Application/unit_controller.dart';
+import 'package:rentra/Data/datasources/unit_remote_datasource.dart';
+import 'package:rentra/Data/repositories/unit_repository.dart';
+import 'package:rentra/UI/Screens/unit_list_screen.dart';
 
 class PropertyDetailsScreen extends StatelessWidget {
   final Property property;
 
-  const PropertyDetailsScreen({
-    super.key,
-    required this.property,
-  });
+  const PropertyDetailsScreen({super.key, required this.property});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(property.title),
-      ),
+      appBar: AppBar(title: Text(property.title)),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -61,7 +60,7 @@ class PropertyDetailsScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    property.description ,
+                    property.description,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
 
@@ -80,6 +79,31 @@ class PropertyDetailsScreen extends StatelessWidget {
                       },
                       icon: const Icon(Icons.phone),
                       label: const Text('Contact Owner'),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  // VIEW UNITS BUTTON (NEW)
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.meeting_room),
+                      label: const Text('View Units'),
+                      onPressed: () {
+                        // Manual DI (same pattern as MainShell)
+                        final unitController = UnitController(
+                          UnitRepository(UnitRemoteDataSource()),
+                        );
+
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => UnitListScreen(
+                              property: property,
+                              controller: unitController,
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ],

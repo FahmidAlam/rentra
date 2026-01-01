@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:rentra/Application/property_controller.dart';
 import 'package:rentra/Application/role_controller.dart';
+import 'package:rentra/Application/auth_controller.dart';
 import 'package:rentra/Data/datasources/property_remote_datasource.dart';
 import 'package:rentra/Data/repositories/property_repository.dart';
 import 'package:rentra/UI/Screens/add_property_screen.dart';
@@ -24,6 +25,7 @@ class _MainShellState extends State<MainShell> {
   // -------------------------------
   late final PropertyController propertyController;
   final RoleController roleController = RoleController();
+  final AuthController authController = AuthController();
 
   // -------------------------------
   // Role state
@@ -131,7 +133,7 @@ class _MainShellState extends State<MainShell> {
 
       case 1:
         // Role-specific behavior
-        if (roleController.isOwner) {
+          if (roleController.isOwner) {
           return MyPropertiesScreen(
             propertyController: propertyController,
           );

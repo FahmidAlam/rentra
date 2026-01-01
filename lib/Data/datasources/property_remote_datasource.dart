@@ -16,6 +16,15 @@ abstract class IPropertyRemoteDataSource {
     required int propertyId,
     required List<String> imageUrls,
   });
+  Future<void> deleteProperty(int propertyId);
+  Future<void> updateProperty(
+    int propertyId, {
+    String? title,
+    String? address,
+    String? city,
+    String? description,
+    String? imageUrl,
+  });
 }
 
 class PropertyRemoteDataSource implements IPropertyRemoteDataSource {
@@ -74,6 +83,7 @@ class PropertyRemoteDataSource implements IPropertyRemoteDataSource {
 
     return response['id'] as int;
   }
+
   @override
   Future<void> insertPropertyImages({
     required int propertyId,
@@ -90,5 +100,40 @@ class PropertyRemoteDataSource implements IPropertyRemoteDataSource {
     }).toList();
 
     await SupabaseManager.supabase.from('property_images').insert(images);
+  }
+
+  @override
+  Future<void> deleteProperty(int propertyId) async {
+    final response = await SupabaseManager.supabase
+        .from('properties')
+        .delete()
+        .eq('id', propertyId);
+    if (response == null) {
+      throw Exception('Failed to delete property with id $propertyId');
+    }
+  }
+  @override
+  Future<void> updateProperty(
+    int propertyId, {
+    String? title,
+    String? address,
+    String? city,
+    String? description,
+    String? imageUrl,
+  }) async {
+    final updateData = <String, dynamic>{};
+
+    if (title != null) updateData['title'] = title;
+    if (address != null) updateData['address'] = address;
+    if (city != null) updateData['city'] = city;
+    if (description != null) updateData['description'] = description;
+    if (imageUrl != null) updateData['image_url'] = imageUrl;
+
+    if (updateData.isEmpty) return;
+
+    await SupabaseManager.supabase
+        .from('properties')
+        .update(updateData)
+        .eq('id', propertyId);
   }
 }

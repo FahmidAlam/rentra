@@ -1,123 +1,3 @@
-// import 'package:rentra/Data/repositories/property_repository.dart';
-// import 'package:rentra/core/models/property.dart';
-// import 'package:rentra/core/supabase_client.dart';
-
-// class PropertyController {
-//   final PropertyRepository repository;
-
-//   PropertyController(this.repository);
-
-//   Future<List<Property>> fetchProperties() async {
-//     try {
-//       return await repository.getAllProperties();
-//     } catch (e) {
-//       throw Exception('Failed to fetch properties: $e');
-//     }
-//   }
-
-//   Future<Property?> getPropertyById(int id) async {
-//     return await repository.getPropertyById(id);
-//   }
-
-//   Future<void> addProperty({
-//     required String title,
-//     required String address,
-//     required String city,
-//     required String description,
-//     required String coverImageUrl,
-//     required List<String> galleryImages,
-//   }) async {
-//     final user = SupabaseManager.supabase.auth.currentUser;
-
-//     if (user == null) {
-//       throw Exception('User not authenticated');
-//     }
-
-//     await repository.addProperty(
-//       ownerId: user.id,
-//       title: title,
-//       address: address,
-//       city: city,
-//       description: description,
-//       coverImageUrl: coverImageUrl,
-//       galleryImages: galleryImages,
-//     );
-//   }
-// }
-
-// import 'package:flutter/material.dart';
-// import 'package:rentra/Data/repositories/property_repository.dart';
-// import 'package:rentra/core/models/property.dart';
-// import 'package:rentra/core/supabase_client.dart';
-
-// class PropertyController extends ChangeNotifier {
-//   final PropertyRepository repository;
-
-//   PropertyController(this.repository);
-
-//   bool isLoading = false;
-//   List<Property> properties = [];
-
-//   /// Fetch all properties
-//   Future<void> fetchProperties() async {
-//     try {
-//       isLoading = true;
-//       notifyListeners();
-
-//       properties = await repository.getAllProperties();
-//     } catch (e) {
-//       debugPrint('Fetch properties error: $e');
-//     } finally {
-//       isLoading = false;
-//       notifyListeners();
-//     }
-//   }
-
-//   /// Get single property (detail screen use)
-//   Future<Property?> getPropertyById(int id) {
-//     return repository.getPropertyById(id);
-//   }
-
-//   /// Create property + images
-//   Future<void> addProperty({
-//     required String title,
-//     required String address,
-//     required String city,
-//     required String description,
-//     required String coverImageUrl,
-//     required List<String> galleryImages,
-//   }) async {
-//     final user = SupabaseManager.supabase.auth.currentUser;
-//     if (user == null) throw Exception('User not authenticated');
-
-//     try {
-//       isLoading = true;
-//       notifyListeners();
-
-//       await repository.addProperty(
-//         ownerId: user.id,
-//         title: title,
-//         address: address,
-//         city: city,
-//         description: description,
-//         coverImageUrl: coverImageUrl,
-//         galleryImages: galleryImages,
-//       );
-//       List<Property> getMyProperties() {
-//         final user = SupabaseManager.supabase.auth.currentUser;
-//         if (user == null) return [];
-
-//         return properties.where((p) => p.ownerId == user.id).toList();
-//       }
-
-//       // Auto refresh list
-//       await fetchProperties();
-//     } finally {
-//       isLoading = false;
-//       notifyListeners();
-//     }
-//   }
-// }
 import 'package:flutter/material.dart';
 import 'package:rentra/Data/repositories/property_repository.dart';
 import 'package:rentra/core/models/property.dart';
@@ -128,22 +8,24 @@ class PropertyController extends ChangeNotifier {
 
   PropertyController(this.repository);
 
-  // 🔐 Private state
+  // Private state
   bool _isLoading = false;
   List<Property> _properties = [];
 
-  // 📤 Public getters
+  // Public getters
   bool get isLoading => _isLoading;
   List<Property> get properties => _properties;
 
-  /// 👤 Owner-specific properties
+  /// Owner-specific properties
   List<Property> get myProperties {
     final user = SupabaseManager.supabase.auth.currentUser;
     if (user == null) return [];
     return _properties.where((p) => p.ownerId == user.id).toList();
   }
 
-  /// 📥 Fetch all properties
+  get currentUser => null;
+
+  /// Fetch all properties
   Future<void> fetchProperties() async {
     try {
       _isLoading = true;
@@ -158,13 +40,13 @@ class PropertyController extends ChangeNotifier {
     }
   }
 
-  /// 🔍 Single property (details screen)
+  /// Single property (details screen)
   Future<Property?> getPropertyById(int id) {
     return repository.getPropertyById(id);
   }
 
-  /// ➕ Create property
-  Future<void> addProperty({
+  /// Create property
+  Future<void> addProperty(Property newProperty, {
     required String title,
     required String address,
     required String city,
@@ -189,7 +71,49 @@ class PropertyController extends ChangeNotifier {
         galleryImages: galleryImages,
       );
 
-      // 🔄 Refresh list after adding
+      // Refresh list after adding
+      await fetchProperties();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+  Future<void> updateProperty(
+    int propertyId, {
+    String? title,
+    String? address,
+    String? city,
+    String? description,
+    String? imageUrl,
+  }) async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+
+      await repository.updateProperty(
+        propertyId,
+        title: title,
+        address: address,
+        city: city,
+        description: description,
+        imageUrl: imageUrl,
+      );
+
+      // Refresh list after updating
+      await fetchProperties();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+  Future<void> deleteProperty(int propertyId) async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+
+      await repository.deleteProperty(propertyId);
+
+      // Refresh list after deletion
       await fetchProperties();
     } finally {
       _isLoading = false;

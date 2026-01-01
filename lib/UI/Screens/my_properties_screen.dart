@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:rentra/Application/property_controller.dart';
-import 'package:rentra/UI/widgets/property_grid.dart';
+import 'package:rentra/UI/widgets/property_card.dart';
+import 'package:rentra/UI/Screens/add_edit_property_screen.dart';
 
-class MyPropertiesScreen extends StatefulWidget {
+class MyPropertiesScreen extends StatelessWidget {
   final PropertyController propertyController;
 
   const MyPropertiesScreen({
@@ -11,27 +12,92 @@ class MyPropertiesScreen extends StatefulWidget {
   });
 
   @override
-  State<MyPropertiesScreen> createState() => _MyPropertiesScreenState();
-}
-
-class _MyPropertiesScreenState extends State<MyPropertiesScreen> {
-  @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: widget.propertyController,
+      animation: propertyController,
       builder: (context, _) {
-        final controller = widget.propertyController;
-        final myProperties = controller.myProperties;
-
-        if (controller.isLoading) {
+        if (propertyController.isLoading) {
           return const Center(child: CircularProgressIndicator());
         }
+
+        // ✅ SAFE: controller already handles auth
+        final myProperties = propertyController.myProperties;
 
         if (myProperties.isEmpty) {
           return const Center(child: Text('You have no properties yet'));
         }
 
-        return PropertyGrid(properties: myProperties);
+        return GridView.builder(
+          padding: const EdgeInsets.all(12),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 0.75,
+          ),
+          itemCount: myProperties.length,
+          itemBuilder: (context, index) {
+            final property = myProperties[index];
+
+            return Dismissible(
+              key: ValueKey(property.id),
+              direction: DismissDirection.endToStart,
+              background: Container(
+                color: Colors.red,
+                alignment: Alignment.centerRight,
+                padding: const EdgeInsets.only(right: 16),
+                child: const Icon(Icons.delete, color: Colors.white),
+              ),
+              confirmDismiss: (_) async {
+                return await showDialog<bool>(
+                  context: context,
+                  builder: (_) => AlertDialog(
+                    title: const Text('Delete Property'),
+                    content: const Text(
+                      'Are you sure you want to delete this property?',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: const Text('Cancel'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        child: const Text('Delete'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+              onDismissed: (_) {
+                propertyController.deleteProperty(property.id as int);
+              },
+              child: Stack(
+                children: [
+                  PropertyCard(property: property),
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: IconButton(
+                      icon: const Icon(Icons.edit, color: Colors.blue),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => AddEditPropertyScreen(
+                              property: property,
+                              propertyController: propertyController,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
       },
     );
   }

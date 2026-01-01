@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:rentra/Application/property_controller.dart';
+import 'package:rentra/core/models/property.dart';
 
 class AddPropertyScreen extends StatefulWidget {
   final PropertyController controller;
@@ -27,6 +28,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
 
     try {
       await widget.controller.addProperty(
+        '' as Property,
         title: _titleCtrl.text,
         address: _addressCtrl.text,
         city: _cityCtrl.text,

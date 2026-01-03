@@ -20,7 +20,7 @@ class MyPropertiesScreen extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
 
-        // ✅ SAFE: controller already handles auth
+        // controller already handles auth
         final myProperties = propertyController.myProperties;
 
         if (myProperties.isEmpty) {

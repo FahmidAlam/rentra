@@ -24,7 +24,7 @@ class _AddEditPropertyScreenState extends State<AddEditPropertyScreen> {
   late final TextEditingController _descriptionController;
   late final TextEditingController _imageUrlController;
 
-  //final currentUser= SupabaseManager.supabase.auth.currentUser;
+  final currentUser= SupabaseManager.supabase.auth.currentUser;
 
   bool _isSubmitting = false;
 
@@ -76,7 +76,7 @@ class _AddEditPropertyScreenState extends State<AddEditPropertyScreen> {
 
     try {
       if (isEditing) {
-        // ✅ EDIT PROPERTY (CORRECT CONTRACT)
+        // EDIT PROPERTY (CORRECT CONTRACT)
         await widget.propertyController.updateProperty(
           widget.property!.id as int,
           title: title,
@@ -86,11 +86,11 @@ class _AddEditPropertyScreenState extends State<AddEditPropertyScreen> {
           imageUrl: imageUrl,
         );
       } else {
-        // ✅ ADD PROPERTY
+        // ADD PROPERTY
         await widget.propertyController.addProperty(
           Property(
             id: 0, // ignored by Supabase (use String)
-            ownerId: '',
+            ownerId: currentUser?.id ?? '' ,
             title: title,
             city: city,
             address: address,

@@ -51,9 +51,11 @@ class PropertyRemoteDataSource implements IPropertyRemoteDataSource {
           .from('properties')
           .select()
           .eq('id', id)
-          .single();
+          .maybeSingle();
 
-      return Property.fromJson(response);
+      if (response == null) return null;
+
+      return Property.fromJson(response as Map<String, dynamic>);
     } catch (e) {
       throw Exception('Failed to fetch property: $e');
     }
@@ -79,9 +81,13 @@ class PropertyRemoteDataSource implements IPropertyRemoteDataSource {
           'image_url': coverImageUrl,
         })
         .select()
-        .single();
+        .maybeSingle();
 
-    return response['id'] as int;
+    if (response == null) {
+      throw Exception('Failed to insert property');
+    }
+
+    return (response as Map<String, dynamic>)['id'] as int;
   }
 
   @override

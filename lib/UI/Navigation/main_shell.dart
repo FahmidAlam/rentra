@@ -6,8 +6,11 @@ import 'package:rentra/Data/datasources/property_remote_datasource.dart';
 import 'package:rentra/Data/repositories/property_repository.dart';
 import 'package:rentra/UI/Screens/add_property_screen.dart';
 import 'package:rentra/UI/Screens/my_properties_screen.dart';
+import 'package:rentra/UI/Screens/owner_tenancy_request_screen.dart';
 import 'package:rentra/UI/Screens/profile_screen.dart';
 import 'package:rentra/UI/Screens/property_list_screen.dart';
+import 'package:rentra/UI/Screens/tenant_tenancies_screen.dart';
+import 'package:rentra/core/app_dependencies.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class MainShell extends StatefulWidget {
@@ -19,14 +22,12 @@ class MainShell extends StatefulWidget {
 
 class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
-
   // -------------------------------
   // Controllers (manual DI)
   // -------------------------------
   late final PropertyController propertyController;
   final RoleController roleController = RoleController();
   final AuthController authController = AuthController();
-
   // -------------------------------
   // Role state
   // -------------------------------
@@ -36,15 +37,12 @@ class _MainShellState extends State<MainShell> {
   @override
   void initState() {
     super.initState();
-
     // Property feature dependency injection
     final remoteDataSource = PropertyRemoteDataSource();
     final repository = PropertyRepository(remoteDataSource);
     propertyController = PropertyController(repository);
-
-    //! 
+    //!
     propertyController.fetchProperties();
-
     // Load user role ONCE when MainShell starts
     final user = Supabase.instance.client.auth.currentUser;
     if (user != null) {
@@ -64,10 +62,9 @@ class _MainShellState extends State<MainShell> {
     if (_loadingRole) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
-
     return Scaffold(
       body: _buildBody(),
-      // 🔹 OWNER-ONLY FAB (Add Property): show only on "My Properties" tab
+      // 🔹 OWNER-ONLY FAB (Add Property): show only on "My Properties" tab (index 1)
       floatingActionButton: (roleController.isOwner && _currentIndex == 1)
           ? FloatingActionButton(
               onPressed: () {
@@ -82,7 +79,6 @@ class _MainShellState extends State<MainShell> {
               child: const Icon(Icons.add),
             )
           : null,
-
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         selectedItemColor: Colors.blue,
@@ -97,60 +93,89 @@ class _MainShellState extends State<MainShell> {
     );
   }
 
-  // -------------------------------
-  // Role-based BottomNavigationBar
-  // -------------------------------
+  //? UPDATED NAVIGATION BUILDER
   List<BottomNavigationBarItem> _buildNavItems() {
-    // Owner sees "My Properties"
+    // Owner sees 4 tabs: Home, My Properties, Requests, Profile
     if (roleController.isOwner) {
       return const [
-        BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.home),
+          label: 'Home',
+        ),
         BottomNavigationBarItem(
           icon: Icon(Icons.apartment),
           label: 'My Properties',
         ),
-        BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.inbox),
+          label: 'Requests',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.person),
+          label: 'Profile',
+        ),
       ];
     }
 
-    // Renter sees "Browse"
+    //? TENANT sees 4 tabs: Home, Browse, My Requests, Profile
     return const [
-      BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-      BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Browse'),
-      BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.home),
+        label: 'Home',
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.search),
+        label: 'Browse',
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.assignment),
+        label: 'My Requests',
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.person),
+        label: 'Profile',
+      ),
     ];
   }
 
-  // -------------------------------
-  // Role-based screen rendering
-  // -------------------------------
+  //? UPDATED BODY BUILDER
   Widget _buildBody() {
-    switch (_currentIndex) {
-      case 0:
-        // Public property listing (shared)
-        return PropertyListScreen(propertyController: propertyController);
-
-
-      case 1:
-        // Role-specific behavior
-          if (roleController.isOwner) {
-          return MyPropertiesScreen(
-            propertyController: propertyController,
+    if (roleController.isOwner) {
+      // OWNER: 4 tabs
+      switch (_currentIndex) {
+        case 0:
+          return PropertyListScreen(propertyController: propertyController);
+        case 1:
+          return MyPropertiesScreen(propertyController: propertyController);
+        case 2:
+          return OwnerTenancyRequestsScreen(
+            controller: AppDependencies.tenancyController,
           );
-        } else {
+        case 3:
+          return const ProfileScreen();
+        default:
+          return const SizedBox();
+      }
+    } else {
+      // TENANT: 4 tabs (changed from 3)
+      switch (_currentIndex) {
+        case 0:
+          return PropertyListScreen(propertyController: propertyController);
+        case 1:
           return const Center(
             child: Text(
-              'Renter: Browse Properties',
+              'Browse Properties',
               style: TextStyle(fontSize: 18, color: Colors.green),
             ),
           );
-        }
-
-      case 2:
-        return const ProfileScreen();
-
-      default:
-        return const SizedBox();
+        case 2:
+          // ✅ NEW: Tenant's own tenancy requests
+          return const TenantTenanciesScreen();
+        case 3:
+          return const ProfileScreen();
+        default:
+          return const SizedBox();
+      }
     }
   }
 }

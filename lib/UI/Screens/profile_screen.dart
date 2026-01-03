@@ -50,37 +50,47 @@ class _ProfileScreenState extends State<ProfileScreen> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Profile',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 20),
+    return Scaffold(
+      backgroundColor: Colors.greenAccent,
+      appBar: AppBar(
+        title: const Text(
+          'Profile',
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold,color: Colors.blueAccent),
+        ),
+        centerTitle: true,
+      ),
+      body:
+      Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // const Text(
+            //   'Profile',
+            //   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            // ),
+            // const SizedBox(height: 20),
+            ListTile(
+              leading: const Icon(Icons.email),
+              title: const Text('Email'),
+              subtitle: Text(_email ?? 'N/A'),
+            ),
 
-          ListTile(
-            leading: const Icon(Icons.email),
-            title: const Text('Email'),
-            subtitle: Text(_email ?? 'N/A'),
-          ),
+            ListTile(
+              leading: const Icon(Icons.badge),
+              title: const Text('Role'),
+              subtitle: Text(_role ?? 'Unknown'),
+            ),
 
-          ListTile(
-            leading: const Icon(Icons.badge),
-            title: const Text('Role'),
-            subtitle: Text(_role ?? 'Unknown'),
-          ),
+            const SizedBox(height: 30),
 
-          const SizedBox(height: 30),
-
-          ElevatedButton.icon(
-            onPressed: _logout,
-            icon: const Icon(Icons.logout),
-            label: const Text('Logout'),
-          ),
-        ],
+            ElevatedButton.icon(
+              onPressed: _logout,
+              icon: const Icon(Icons.logout),
+              label: const Text('Logout'),
+            ),
+          ],
+        ),
       ),
     );
   }

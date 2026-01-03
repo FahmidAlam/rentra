@@ -1,5 +1,4 @@
 import 'package:rentra/core/models/unit.dart';
-import 'package:rentra/core/models/unit.dart';
 import 'package:rentra/core/supabase_client.dart';
 abstract class IUnitRemoteDataSource {
   Future<List<Unit>> fetchUnitsByProperty(int propertyId);

@@ -1,88 +1,9 @@
-// import 'package:flutter/material.dart';
-// import 'package:rentra/Application/unit_controller.dart';
-// import 'package:rentra/core/models/property.dart';
-// import 'package:rentra/UI/Screens/add_unit_screen.dart';
-// import 'package:rentra/Application/role_controller.dart';
 
-// class UnitListScreen extends StatefulWidget {
-//   final Property property;
-//   final UnitController controller;
-
-//   const UnitListScreen({
-//     super.key,
-//     required this.property,
-//     required this.controller,
-//   });
-
-//   @override
-//   State<UnitListScreen> createState() => _UnitListScreenState();
-// }
-
-// class _UnitListScreenState extends State<UnitListScreen> {
-  
-// final RoleController roleController = RoleController();
-//   @override
-//   void initState() {
-//     super.initState();
-//     widget.controller.loadUnits(widget.property.id);
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return AnimatedBuilder(
-//       animation: widget.controller,
-//       builder: (_, __) {
-//         if (widget.controller.isLoading) {
-//           return const Scaffold(
-//             body: Center(child: CircularProgressIndicator()),
-//           );
-//         }
-
-//         return Scaffold(
-//           appBar: AppBar(title: Text('Units - ${widget.property.title}')),
-//           floatingActionButton: roleController.isOwner
-//               ? FloatingActionButton(
-//                   child: const Icon(Icons.add),
-//                   onPressed: () {
-//                     Navigator.push(
-//                       context,
-//                       MaterialPageRoute(
-//                         builder: (_) => AddUnitScreen(
-//                           propertyId: widget.property.id,
-//                           controller: widget.controller,
-//                         ),
-//                       ),
-//                     );
-//                   },
-//                 )
-//               : null,
-//           body: ListView.builder(
-//             itemCount: widget.controller.units.length,
-//             itemBuilder: (_, index) {
-//               final unit = widget.controller.units[index];
-
-//               return ListTile(
-//                 title: Text('Unit ${unit.unitNumber}'),
-//                 subtitle: Text('Rent: ৳${unit.rent}'),
-//                 trailing: Switch(
-//                   value: unit.isAvailable,
-//                   onChanged: (_) {
-//                     widget.controller.toggleAvailability(unit);
-//                   },
-//                 ),
-//               );
-//             },
-//           ),
-//         );
-//       },
-//     );
-//   }
-// }
 import 'package:flutter/material.dart';
 import 'package:rentra/Application/unit_controller.dart';
+import 'package:rentra/core/app_dependencies.dart';
 import 'package:rentra/core/models/property.dart';
 import 'package:rentra/UI/Screens/add_unit_screen.dart';
-import 'package:rentra/Application/role_controller.dart';
 import 'package:rentra/core/supabase_client.dart';
 
 class UnitListScreen extends StatefulWidget {
@@ -100,38 +21,27 @@ class UnitListScreen extends StatefulWidget {
 }
 
 class _UnitListScreenState extends State<UnitListScreen> {
-  final RoleController _roleController = RoleController();
-  bool _isOwner = false;
-  bool _loadingRole = true;
+  bool _isPropertyOwner = false;
+  bool _loadingOwnershipCheck = true;
 
   @override
   void initState() {
     super.initState();
-    _loadOwnerStatus();
+    _checkPropertyOwnership();
     widget.controller.loadUnits(widget.property.id);
   }
 
-  Future<void> _loadOwnerStatus() async {
-    try {
-      final user = SupabaseManager.supabase.auth.currentUser;
-      if (user == null) {
-        if (!mounted) return;
-        setState(() => _loadingRole = false);
-        return;
-      }
-
-      final role = await _roleController.loadRole(user.id);
-      if (!mounted) return;
-      
-      setState(() {
-        _isOwner = role == 'owner';
-        _loadingRole = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _loadingRole = false);
-      debugPrint('Error loading role: $e');
+  Future<void> _checkPropertyOwnership() async {
+    final currentUser = SupabaseManager.supabase.auth.currentUser;
+    if (currentUser == null) {
+      setState(() => _loadingOwnershipCheck = false);
+      return;
     }
+
+    setState(() {
+      _isPropertyOwner = widget.property.ownerId == currentUser.id;
+      _loadingOwnershipCheck = false;
+    });
   }
 
   @override
@@ -139,15 +49,17 @@ class _UnitListScreenState extends State<UnitListScreen> {
     return AnimatedBuilder(
       animation: widget.controller,
       builder: (_, __) {
-        if (widget.controller.isLoading || _loadingRole) {
+        if (widget.controller.isLoading || _loadingOwnershipCheck) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
         }
 
         return Scaffold(
-          appBar: AppBar(title: Text('Units - ${widget.property.title}')),
-          floatingActionButton: _isOwner
+          appBar: AppBar(
+            title: Text('Units - ${widget.property.title}'),
+          ),
+          floatingActionButton: _isPropertyOwner
               ? FloatingActionButton(
                   child: const Icon(Icons.add),
                   onPressed: () {
@@ -169,15 +81,61 @@ class _UnitListScreenState extends State<UnitListScreen> {
                   itemCount: widget.controller.units.length,
                   itemBuilder: (_, index) {
                     final unit = widget.controller.units[index];
+
                     return ListTile(
                       title: Text('Unit ${unit.unitNumber}'),
                       subtitle: Text('Rent: ৳${unit.rent}'),
-                      trailing: Switch(
-                        value: unit.isAvailable,
-                        onChanged: (_) {
-                          widget.controller.toggleAvailability(unit);
-                        },
-                      ),
+                      trailing: _isPropertyOwner
+                          ? Switch(
+                              value: unit.isAvailable,
+                              onChanged: (_) {
+                                widget.controller
+                                    .toggleAvailability(unit);
+                              },
+                            )
+                          : ElevatedButton(
+                              child: const Text('Request'),
+                              onPressed: unit.isAvailable
+                                  ? () async {
+                                      final user = SupabaseManager
+                                          .supabase.auth.currentUser;
+
+                                      if (user == null) {
+                                        if (!context.mounted) return;
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                                'Please sign in to request'),
+                                          ),
+                                        );
+                                        return;
+                                      }
+
+                                      final success = await AppDependencies
+                                          .tenancyController
+                                          .requestTenancy(
+                                        tenantId: user.id,
+                                        unitId: unit.id,
+                                      );
+
+                                      if (!context.mounted) return;
+
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            success
+                                                ? 'Tenancy request sent'
+                                                : AppDependencies
+                                                        .tenancyController
+                                                        .errorMessage ??
+                                                    'Request failed',
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  : null,
+                            ),
                     );
                   },
                 ),
@@ -186,3 +144,4 @@ class _UnitListScreenState extends State<UnitListScreen> {
     );
   }
 }
+

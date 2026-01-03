@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:rentra/Application/property_controller.dart';
 import 'package:rentra/core/models/property.dart';
+import 'package:rentra/core/supabase_client.dart';
 
 class AddEditPropertyScreen extends StatefulWidget {
   final PropertyController propertyController;
@@ -22,6 +23,8 @@ class _AddEditPropertyScreenState extends State<AddEditPropertyScreen> {
   late final TextEditingController _addressController;
   late final TextEditingController _descriptionController;
   late final TextEditingController _imageUrlController;
+
+  //final currentUser= SupabaseManager.supabase.auth.currentUser;
 
   bool _isSubmitting = false;
 

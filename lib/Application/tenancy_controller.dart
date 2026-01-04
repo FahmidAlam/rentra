@@ -12,7 +12,7 @@ class TenancyController extends ChangeNotifier {
   List<Tenancy> pendingTenancies = [];
   List<dynamic> tenantTenancies = []; // For tenant viewing their own requests
 
-  /// =========================
+  /// ========================= 
   /// TENANT: Request tenancy
   /// =========================
   Future<bool> requestTenancy({

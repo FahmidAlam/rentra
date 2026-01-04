@@ -313,7 +313,7 @@ class _TenantTenanciesScreenState extends State<TenantTenanciesScreen> {
 
               const SizedBox(height: 12),
 
-              // 📋 UNIT & RENT INFO
+              // UNIT & RENT INFO
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(

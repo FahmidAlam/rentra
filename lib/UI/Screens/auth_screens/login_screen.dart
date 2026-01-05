@@ -62,7 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     // ! RESPONSIVE SIZING: Adapts to different screen sizes
     final isSmallScreen = MediaQuery.of(context).size.height < 600;
-    final screenHeight = MediaQuery.of(context).size.height;
+    //?    final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
       body: Container(

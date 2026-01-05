@@ -68,7 +68,7 @@ class MyPropertiesScreen extends StatelessWidget {
                 );
               },
               onDismissed: (_) {
-                propertyController.deleteProperty(property.id as int);
+                propertyController.deleteProperty(property.id);
               },
               child: Stack(
                 children: [
@@ -108,9 +108,8 @@ class MyPropertiesScreen extends StatelessWidget {
                               context,
                               MaterialPageRoute(
                                 builder: (_) => AddEditPropertyScreen(
+                                  controller: propertyController,
                                   property: property,
-                                  propertyController:
-                                      propertyController,
                                 ),
                               ),
                             );

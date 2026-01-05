@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:rentra/Application/property_controller.dart';
 import 'package:rentra/core/models/property.dart';
-import 'package:rentra/core/supabase_client.dart';
 
 class AddEditPropertyScreen extends StatefulWidget {
-  final PropertyController propertyController;
-  final Property? property; // null = Add, not null = Edit
+  final PropertyController controller;
+  final Property? property; // null = ADD, not null = EDIT
 
   const AddEditPropertyScreen({
     super.key,
-    required this.propertyController,
+    required this.controller,
     this.property,
   });
 
@@ -18,91 +17,58 @@ class AddEditPropertyScreen extends StatefulWidget {
 }
 
 class _AddEditPropertyScreenState extends State<AddEditPropertyScreen> {
-  late final TextEditingController _titleController;
-  late final TextEditingController _cityController;
-  late final TextEditingController _addressController;
-  late final TextEditingController _descriptionController;
-  late final TextEditingController _imageUrlController;
+  final _titleCtrl = TextEditingController();
+  final _addressCtrl = TextEditingController();
+  final _cityCtrl = TextEditingController();
+  final _descCtrl = TextEditingController();
 
-  final currentUser= SupabaseManager.supabase.auth.currentUser;
+  bool _loading = false;
 
-  bool _isSubmitting = false;
-
-  bool get isEditing => widget.property != null;
+  // TEMP placeholders (future: image picker)
+  String coverImageUrl = 'https://placehold.co/600x400';
+  List<String> galleryImages = [];
 
   @override
   void initState() {
     super.initState();
 
-    _titleController =
-        TextEditingController(text: widget.property?.title ?? '');
-    _cityController =
-        TextEditingController(text: widget.property?.city ?? '');
-    _addressController =
-        TextEditingController(text: widget.property?.address ?? '');
-    _descriptionController =
-        TextEditingController(text: widget.property?.description ?? '');
-    _imageUrlController =
-        TextEditingController(text: widget.property?.imageUrl ?? '');
-  }
-
-  @override
-  void dispose() {
-    _titleController.dispose();
-    _cityController.dispose();
-    _addressController.dispose();
-    _descriptionController.dispose();
-    _imageUrlController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _saveProperty() async {
-    if (_isSubmitting) return;
-
-    final title = _titleController.text.trim();
-    final city = _cityController.text.trim();
-    final address = _addressController.text.trim();
-    final description = _descriptionController.text.trim();
-    final imageUrl = _imageUrlController.text.trim();
-
-    if (title.isEmpty || city.isEmpty || address.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Title, City and Address are required')),
-      );
-      return;
+    // EDIT MODE → prefill fields
+    if (widget.property != null) {
+      _titleCtrl.text = widget.property!.title;
+      _addressCtrl.text = widget.property!.address;
+      _cityCtrl.text = widget.property!.city;
+      _descCtrl.text = widget.property!.description;
+      coverImageUrl = widget.property!.imageUrl;
     }
+  }
 
-    setState(() => _isSubmitting = true);
+  Future<void> _submit() async {
+    setState(() => _loading = true);
 
     try {
-      if (isEditing) {
-        // EDIT PROPERTY (CORRECT CONTRACT)
-        await widget.propertyController.updateProperty(
-          widget.property!.id as int,
-          title: title,
-          city: city,
-          address: address,
-          description: description,
-          imageUrl: imageUrl,
+      if (widget.property == null) {
+        // --------------------
+        // ADD PROPERTY
+        // --------------------
+        await widget.controller.addProperty(
+          title: _titleCtrl.text.trim(),
+          address: _addressCtrl.text.trim(),
+          city: _cityCtrl.text.trim(),
+          description: _descCtrl.text.trim(),
+          coverImageUrl: coverImageUrl,
+          galleryImages: galleryImages,
         );
       } else {
-        // ADD PROPERTY
-        await widget.propertyController.addProperty(
-          Property(
-            id: 0, // ignored by Supabase (use String)
-            ownerId: currentUser?.id ?? '' ,
-            title: title,
-            city: city,
-            address: address,
-            description: description,
-            imageUrl: imageUrl,
-          ),
-          title: title,
-          address: address,
-          city: city,
-          description: description,
-          coverImageUrl: imageUrl,
-          galleryImages: const [],
+        // --------------------
+        // EDIT PROPERTY
+        // --------------------
+        await widget.controller.updateProperty(
+          widget.property!.id,
+          title: _titleCtrl.text.trim(),
+          address: _addressCtrl.text.trim(),
+          city: _cityCtrl.text.trim(),
+          description: _descCtrl.text.trim(),
+          imageUrl: coverImageUrl,
         );
       }
 
@@ -110,66 +76,64 @@ class _AddEditPropertyScreenState extends State<AddEditPropertyScreen> {
       Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
-      // ScaffoldMessenger.of(context).showSnackBar(
-      //   const SnackBar(content: Text('Failed to save property')),
-      // );
-      debugPrint('Update property error: $e');
-
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text(e.toString())),
-  );
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
     } finally {
-      if (mounted) {
-        setState(() => _isSubmitting = false);
-      }
+      if (mounted) setState(() => _loading = false);
     }
   }
 
   @override
+  void dispose() {
+    _titleCtrl.dispose();
+    _addressCtrl.dispose();
+    _cityCtrl.dispose();
+    _descCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final isEdit = widget.property != null;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(isEditing ? 'Edit Property' : 'Add Property'),
+        title: Text(isEdit ? 'Edit Property' : 'Add Property'),
       ),
-      body: ListView(
+      body: Padding(
         padding: const EdgeInsets.all(16),
-        children: [
-          TextField(
-            controller: _titleController,
-            decoration: const InputDecoration(labelText: 'Title'),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _cityController,
-            decoration: const InputDecoration(labelText: 'City'),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _addressController,
-            decoration: const InputDecoration(labelText: 'Address'),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _descriptionController,
-            decoration: const InputDecoration(labelText: 'Description'),
-            maxLines: 3,
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _imageUrlController,
-            decoration: const InputDecoration(labelText: 'Cover Image URL'),
-          ),
-          const SizedBox(height: 24),
-          SizedBox(
-            height: 48,
-            child: ElevatedButton(
-              onPressed: _isSubmitting ? null : _saveProperty,
-              child: _isSubmitting
-                  ? const CircularProgressIndicator(color: Colors.white)
-                  : Text(isEditing ? 'Update Property' : 'Add Property'),
+        child: Column(
+          children: [
+            TextField(
+              controller: _titleCtrl,
+              decoration: const InputDecoration(labelText: 'Title'),
             ),
-          ),
-        ],
+            TextField(
+              controller: _addressCtrl,
+              decoration: const InputDecoration(labelText: 'Address'),
+            ),
+            TextField(
+              controller: _cityCtrl,
+              decoration: const InputDecoration(labelText: 'City'),
+            ),
+            TextField(
+              controller: _descCtrl,
+              decoration: const InputDecoration(labelText: 'Description'),
+              maxLines: 3,
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _loading ? null : _submit,
+                child: _loading
+                    ? const CircularProgressIndicator()
+                    : Text(isEdit ? 'Update Property' : 'Create Property'),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

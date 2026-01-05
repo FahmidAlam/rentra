@@ -20,7 +20,6 @@ class PropertyImageManagementScreen extends StatefulWidget {
 class _PropertyImageManagementScreenState
     extends State<PropertyImageManagementScreen> {
   late PropertyImageController _controller;
-  List<PropertyImage> _reorderingImages = [];
   bool _isReordering = false;
 
   @override
@@ -182,7 +181,6 @@ class _PropertyImageManagementScreenState
           }
           final image = _controller.images.removeAt(oldIndex);
           _controller.images.insert(newIndex, image);
-          _reorderingImages = List.from(_controller.images);
         });
       },
       children: List.generate(
@@ -584,7 +582,6 @@ class _PropertyImageManagementScreenState
 
     setState(() {
       _isReordering = !_isReordering;
-      _reorderingImages = [];
     });
   }
 }

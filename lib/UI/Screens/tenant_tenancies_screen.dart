@@ -1,3 +1,5 @@
+// ignore_for_file: invalid_use_of_visible_for_testing_member
+
 import 'package:flutter/material.dart';
 import 'package:rentra/Application/tenancy_controller.dart';
 import 'package:rentra/core/app_dependencies.dart';
@@ -70,6 +72,7 @@ class _TenantTenanciesScreenState extends State<TenantTenanciesScreen> {
         }
       }).whereType<TenantTenancyInfo>().toList();
       
+      // ignore: invalid_use_of_protected_member
       _controller.notifyListeners();
     } catch (e) {
       print('❌ Error loading tenant tenancies: $e');

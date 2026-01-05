@@ -55,7 +55,7 @@ class PropertyRemoteDataSource implements IPropertyRemoteDataSource {
 
       if (response == null) return null;
 
-      return Property.fromJson(response as Map<String, dynamic>);
+      return Property.fromJson(response);
     } catch (e) {
       throw Exception('Failed to fetch property: $e');
     }
@@ -87,7 +87,7 @@ class PropertyRemoteDataSource implements IPropertyRemoteDataSource {
       throw Exception('Failed to insert property');
     }
 
-    return (response as Map<String, dynamic>)['id'] as int;
+    return (response)['id'] as int;
   }
 
   @override

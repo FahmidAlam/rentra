@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:rentra/Application/tenancy_controller.dart';
 import 'package:rentra/core/supabase_client.dart';
+import 'package:rentra/core/theme/app_theme.dart';
+import 'package:rentra/UI/widgets/reusable_widgets.dart';
 
 class OwnerTenancyRequestsScreen extends StatefulWidget {
   final TenancyController controller;
@@ -14,6 +16,7 @@ class OwnerTenancyRequestsScreen extends StatefulWidget {
 class _OwnerTenancyRequestsScreenState
     extends State<OwnerTenancyRequestsScreen> {
   bool _noUser = false;
+  Map<String, dynamic> _tenantDetails = {};
 
   @override
   void initState() {
@@ -24,6 +27,21 @@ class _OwnerTenancyRequestsScreenState
       return;
     }
     widget.controller.loadPendingForOwner(currentUser.id);
+  }
+
+  Future<void> _fetchTenantProfile(String tenantId) async {
+    try {
+      final response = await SupabaseManager.supabase
+          .from('profiles')
+          .select()
+          .eq('id', tenantId)
+          .single();
+
+      _tenantDetails[tenantId] = response;
+    } catch (e) {
+      print('Error fetching tenant profile: $e');
+      _tenantDetails[tenantId] = null;
+    }
   }
 
   @override
@@ -43,7 +61,7 @@ class _OwnerTenancyRequestsScreenState
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   CircularProgressIndicator(),
-                  SizedBox(height: 16),
+                  VSpace(16),
                   Text('Loading requests...'),
                 ],
               ),
@@ -51,66 +69,37 @@ class _OwnerTenancyRequestsScreenState
           );
         }
 
-        //  NOT SIGNED IN STATE
+        // ❌ NOT SIGNED IN
         if (_noUser) {
           return Scaffold(
             appBar: AppBar(
               title: const Text('Pending Requests'),
               centerTitle: true,
             ),
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.lock, size: 64, color: Colors.grey),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Please sign in to view requests',
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
-                  ),
-                ],
-              ),
+            body: RentraEmptyState(
+              icon: Icons.lock,
+              title: 'Please sign in',
+              subtitle: 'Sign in to view tenancy requests',
             ),
           );
         }
 
-        //  NO REQUESTS STATE
+        // 📭 NO REQUESTS
         if (widget.controller.pendingTenancies.isEmpty) {
           return Scaffold(
             appBar: AppBar(
               title: const Text('Pending Requests'),
               centerTitle: true,
             ),
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.inbox, size: 64, color: Colors.grey),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'No pending requests',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Tenants will appear here when they request units',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey,
-                    ),
-                  ),
-                ],
-              ),
+            body: RentraEmptyState(
+              icon: Icons.inbox,
+              title: 'No pending requests',
+              subtitle: 'Tenants will appear here when they request units',
             ),
           );
         }
 
-        //  REQUESTS LIST
+        // ✅ REQUESTS LIST
         return Scaffold(
           appBar: AppBar(
             title: const Text('Pending Requests'),
@@ -124,8 +113,7 @@ class _OwnerTenancyRequestsScreenState
             itemCount: widget.controller.pendingTenancies.length,
             itemBuilder: (_, index) {
               final req = widget.controller.pendingTenancies[index];
-
-              return _buildRequestCard(req);
+              return _buildRequestCardWithTenantInfo(req);
             },
           ),
         );
@@ -133,217 +121,240 @@ class _OwnerTenancyRequestsScreenState
     );
   }
 
-  // STEP 5: IMPROVED REQUEST CARD WIDGET
-  Widget _buildRequestCard(dynamic req) {
-    // Extract tenant ID (first 8 chars for display)
-    final tenantIdShort = req.tenantId.substring(0, 8);
-    
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border(
-            left: BorderSide(
-              color: Colors.blue.shade400,
-              width: 4,
+  Widget _buildRequestCardWithTenantInfo(dynamic req) {
+    return FutureBuilder(
+      future: _fetchTenantProfile(req.tenantId),
+      builder: (context, snapshot) {
+        final tenantInfo = _tenantDetails[req.tenantId];
+        final tenantEmail = tenantInfo?['email'] ?? 'N/A';
+        final tenantName = tenantInfo?['full_name'] ?? 'N/A';
+        final tenantPhone = tenantInfo?['phone'] ?? 'N/A';
+
+        return Card(
+          margin: const EdgeInsets.only(bottom: 16),
+          elevation: 2,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border(
+              left: BorderSide(
+                color: RentraColors.pending,
+                width: 4,
+              ),
             ),
           ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              //  HEADER: Unit Info
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  // 👤 TENANT INFO HEADER
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: RentraColors.limeGreen.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: RentraColors.limeGreen.withOpacity(0.3),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: RentraColors.limeGreen,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.person,
+                                  color: Colors.white, size: 20),
+                            ),
+                            const HSpace(12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    tenantName,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: RentraColors.darkText,
+                                    ),
+                                  ),
+                                  const VSpace(2),
+                                  Text(
+                                    tenantEmail,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: RentraColors.lightText,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const VSpace(12),
+                        Divider(
+                          color: RentraColors.limeGreen.withOpacity(0.3),
+                          height: 1,
+                        ),
+                        const VSpace(12),
+                        Row(
+                          children: [
+                            const Icon(Icons.phone,
+                                size: 14, color: RentraColors.darkTeal),
+                            const HSpace(8),
+                            Text(
+                              tenantPhone,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: RentraColors.darkText,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const VSpace(16),
+
+                  // 🏠 UNIT & PROPERTY INFO
+                  Text(
+                    'Property Unit Details',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  const VSpace(8),
+
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: RentraColors.background,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      children: [
+                        RentraInfoRow(
+                          icon: Icons.domain,
+                          label: 'Unit ID',
+                          value: req.unitId.toString(),
+                        ),
+                        const VSpace(12),
+                        RentraInfoRow(
+                          icon: Icons.calendar_month,
+                          label: 'Requested On',
+                          value: _formatDate(DateTime.parse(req.createdAt)),
+                        ),
+                        const VSpace(12),
+                        RentraInfoRow(
+                          icon: Icons.schedule,
+                          label: 'Status',
+                          value: req.status.toUpperCase(),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const VSpace(16),
+
+                  // ⏳ STATUS BADGE
+                  Center(
+                    child: RentraStatusBadge(
+                      label: req.status,
+                      status: req.status,
+                      icon: Icons.schedule,
+                    ),
+                  ),
+
+                  const VSpace(16),
+
+                  // 🔘 ACTION BUTTONS
+                  Row(
                     children: [
-                      Text(
-                        'Unit #${req.unitId}',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
+                      // ✅ APPROVE BUTTON
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () => _showConfirmDialog(
+                            context,
+                            title: 'Approve Request?',
+                            message:
+                                'Approve tenancy request from ${tenantName}?',
+                            onConfirm: () {
+                              widget.controller.approve(
+                                  req.id, req.unitId);
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('✅ Request approved'),
+                                  backgroundColor: RentraColors.success,
+                                ),
+                              );
+                            },
+                          ),
+                          icon: const Icon(Icons.check),
+                          label: const Text('Approve'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: RentraColors.success,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Tenant: $tenantIdShort...',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade600,
+
+                      const HSpace(12),
+
+                      // ❌ REJECT BUTTON
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () => _showConfirmDialog(
+                            context,
+                            title: 'Reject Request?',
+                            message:
+                                'Reject tenancy request from ${tenantName}?',
+                            onConfirm: () {
+                              widget.controller.reject(req.id);
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('❌ Request rejected'),
+                                  backgroundColor: RentraColors.error,
+                                ),
+                              );
+                            },
+                          ),
+                          icon: const Icon(Icons.close),
+                          label: const Text('Reject'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: RentraColors.error,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
                         ),
                       ),
                     ],
                   ),
-                  //  STATUS BADGE
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.orange.withOpacity(0.1),
-                      border: Border.all(color: Colors.orange),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Text(
-                      'Pending',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.orange,
-                      ),
-                    ),
-                  ),
                 ],
               ),
-
-              const SizedBox(height: 16),
-
-              //  REQUEST DETAILS
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _buildInfoColumn('Unit ID', req.unitId.toString()),
-                    const SizedBox(width: 8),
-                    Container(
-                      height: 30,
-                      width: 1,
-                      color: Colors.grey.shade300,
-                    ),
-                    const SizedBox(width: 8),
-                    _buildInfoColumn(
-                      'Tenant ID',
-                      tenantIdShort,
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              //  ACTION BUTTONS
-              Row(
-                children: [
-                  //  APPROVE BUTTON
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () async {
-                        _showConfirmDialog(
-                          context,
-                          title: 'Approve Request?',
-                          message: 'Approve this tenancy request?',
-                          onConfirm: () {
-                            widget.controller.approve(req.id, req.unitId);
-                            Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('✅ Request approved'),
-                                backgroundColor: Colors.green,
-                              ),
-                            );
-                          },
-                        );
-                      },
-                      icon: const Icon(Icons.check),
-                      label: const Text('Approve'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(width: 12),
-
-                  //  REJECT BUTTON
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () async {
-                        _showConfirmDialog(
-                          context,
-                          title: 'Reject Request?',
-                          message: 'Reject this tenancy request?',
-                          onConfirm: () {
-                            widget.controller.reject(req.id);
-                            Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('❌ Request rejected'),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
-                          },
-                        );
-                      },
-                      icon: const Icon(Icons.close),
-                      label: const Text('Reject'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
-  // Helper widget for info display
-  Widget _buildInfoColumn(String label, String value) {
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-              color: Colors.grey.shade600,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Helper method for confirmation dialog
   void _showConfirmDialog(
     BuildContext context, {
     required String title,
@@ -365,13 +376,32 @@ class _OwnerTenancyRequestsScreenState
           ),
           ElevatedButton(
             onPressed: onConfirm,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
-            ),
             child: const Text('Confirm'),
           ),
         ],
       ),
     );
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day} ${_monthName(date.month)} ${date.year}';
+  }
+
+  String _monthName(int month) {
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
+    return months[month - 1];
   }
 }

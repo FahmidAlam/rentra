@@ -15,14 +15,6 @@ class PropertyListScreen extends StatefulWidget {
 }
 
 class _PropertyListScreenState extends State<PropertyListScreen> {
-  @override
-void initState() {
-  super.initState();
-  WidgetsBinding.instance.addPostFrameCallback((_) {        
-    //? Run data fetching once, after UI is rendered, without breaking Flutter’s build cycle
-    widget.propertyController.fetchProperties();
-  });
-}
 
   @override
   Widget build(BuildContext context) {

@@ -22,9 +22,7 @@ abstract class ITenancyRemoteDataSource {
     required String tenantId,
     required int unitId,
   });
-  Future<List<Map<String, dynamic>>> fetchPendingForOwner(
-    String ownerId,
-  );
+  Future<List<Map<String, dynamic>>> fetchPendingForOwner(String ownerId);
   Future<void> approveTenancy(int tenancyId, int unitId);
   Future<void> rejectTenancy(int tenancyId);
 }
@@ -75,11 +73,13 @@ class TenancyRemoteDataSource implements ITenancyRemoteDataSource {
 
           final propertyOwnerId = property['owner_id'] as String?;
           final matches = propertyOwnerId == ownerId;
-          
+
           if (matches) {
-            print('✅ Found matching tenancy: unit=${item['unit_id']}, owner=$propertyOwnerId');
+            print(
+              '✅ Found matching tenancy: unit=${item['unit_id']}, owner=$propertyOwnerId',
+            );
           }
-          
+
           return matches;
         } catch (e) {
           print('❌ Error filtering item: $e, item: $item');
@@ -95,39 +95,59 @@ class TenancyRemoteDataSource implements ITenancyRemoteDataSource {
     }
   }
 
+  //!--------------------updated method below--------------------
   @override
   Future<void> approveTenancy(int tenancyId, int unitId) async {
-    try {
-      print('⏳ Approving tenancy $tenancyId for unit $unitId');
-      
-      await SupabaseManager.supabase.from('tenancies').update({
-        'status': 'approved',
-        'active': true,
-        'start_date': DateTime.now().toIso8601String(),
-      }).eq('id', tenancyId);
-      
-      await SupabaseManager.supabase
-          .from('units')
-          .update({'is_available': false})
-          .eq('id', unitId);
-      
-      print('✅ Tenancy $tenancyId approved successfully');
-    } catch (e) {
-      print('❌ Error approving tenancy: $e');
-      rethrow;
-    }
-  }
+  try {
+    print('⏳ Approving tenancy $tenancyId for unit $unitId');
+    
+    // ✅ STEP 1: Approve the selected tenancy
+    await SupabaseManager.supabase.from('tenancies').update({
+      'status': 'approved',
+      'active': true,
+      'start_date': DateTime.now().toIso8601String(),
+    }).eq('id', tenancyId);
+    
+    print('✅ Tenancy $tenancyId status updated to approved');
 
+    // ✅ STEP 2: AUTO-REJECT all other pending requests for this unit
+    final rejectedResult = await SupabaseManager.supabase
+        .from('tenancies')
+        .update({'status': 'rejected'})
+        .eq('unit_id', unitId)
+        .eq('status', 'pending')
+        .neq('id', tenancyId)
+        .select('id');
+    
+    final rejectedCount = (rejectedResult as List).length;
+    print('✅ Auto-rejected $rejectedCount other pending requests for unit $unitId');
+
+    // ✅ STEP 3: Lock the unit (mark as unavailable)
+    await SupabaseManager.supabase
+        .from('units')
+        .update({'is_available': false})
+        .eq('id', unitId);
+    
+    print('✅ Unit $unitId marked as unavailable');
+    print('🎉 Approval complete: 1 approved, $rejectedCount rejected, unit locked');
+  } catch (e) {
+    print('❌ Error in approveTenancy: $e');
+    rethrow;
+  }
+}
+
+
+  //!--------------------end of updated method--------------------
   @override
   Future<void> rejectTenancy(int tenancyId) async {
     try {
       print('⏳ Rejecting tenancy $tenancyId');
-      
+
       await SupabaseManager.supabase
           .from('tenancies')
           .update({'status': 'rejected'})
           .eq('id', tenancyId);
-      
+
       print('✅ Tenancy $tenancyId rejected successfully');
     } catch (e) {
       print('❌ Error rejecting tenancy: $e');
@@ -144,7 +164,7 @@ class TenancyRemoteDataSource implements ITenancyRemoteDataSource {
           .eq('email', email)
           .eq('role', 'tenant')
           .maybeSingle();
-      
+
       if (response == null) return null;
       return response['id'] as String;
     } catch (e) {
@@ -162,7 +182,7 @@ class TenancyRemoteDataSource implements ITenancyRemoteDataSource {
   }) async {
     try {
       print('⏳ Creating tenancy for tenant $tenantId, unit $unitId');
-      
+
       await SupabaseManager.supabase.from('tenancies').insert({
         'tenant_id': tenantId,
         'unit_id': unitId,
@@ -171,7 +191,7 @@ class TenancyRemoteDataSource implements ITenancyRemoteDataSource {
         'status': 'pending',
         'active': false,
       });
-      
+
       print('✅ Tenancy created successfully');
     } catch (e) {
       print('❌ Error creating tenancy: $e');
@@ -186,14 +206,14 @@ class TenancyRemoteDataSource implements ITenancyRemoteDataSource {
   }) async {
     try {
       print('⏳ Creating tenancy request for tenant $tenantId, unit $unitId');
-      
+
       await SupabaseManager.supabase.from('tenancy_requests').insert({
         'tenant_id': tenantId,
         'unit_id': unitId,
         'status': 'pending',
         'active': false,
       });
-      
+
       print('✅ Tenancy request created successfully');
     } catch (e) {
       print('❌ Error creating tenancy request: $e');
@@ -216,12 +236,12 @@ class TenancyRemoteDataSource implements ITenancyRemoteDataSource {
   }) async {
     try {
       print('⏳ Updating tenancy $tenancyId to status: $status');
-      
+
       await SupabaseManager.supabase
           .from('tenancies')
           .update({'status': status, 'active': status == 'approved'})
           .eq('id', tenancyId);
-      
+
       print('✅ Tenancy status updated successfully');
     } catch (e) {
       print('❌ Error updating tenancy status: $e');
@@ -233,19 +253,19 @@ class TenancyRemoteDataSource implements ITenancyRemoteDataSource {
   Future<void> lockUnit({required int unitId}) async {
     try {
       print('⏳ Locking unit $unitId');
-      
+
       await SupabaseManager.supabase
           .from('units')
           .update({'is_available': false})
           .eq('id', unitId);
-      
+
       print('✅ Unit locked successfully');
     } catch (e) {
       print('❌ Error locking unit: $e');
       rethrow;
     }
   }
-
+//!--------------------new method below--------------------
   @override
   Future<void> createTenancyRequest({
     required String tenantId,
@@ -253,19 +273,32 @@ class TenancyRemoteDataSource implements ITenancyRemoteDataSource {
   }) async {
     try {
       print('⏳ Creating tenancy request - tenant: $tenantId, unit: $unitId');
-      
-      // Insert directly into tenancies table (not tenancy_requests)
+
+      // ✅ CHECK: Prevent duplicate requests
+      final existing = await SupabaseManager.supabase
+          .from('tenancies')
+          .select('id')
+          .eq('tenant_id', tenantId)
+          .eq('unit_id', unitId)
+          .eq('status', 'pending')
+          .maybeSingle();
+
+      if (existing != null) {
+        throw Exception('You already have a pending request for this unit');
+      }
+
       await SupabaseManager.supabase.from('tenancies').insert({
         'tenant_id': tenantId,
         'unit_id': unitId,
         'status': 'pending',
         'active': false,
       });
-      
-      print('✅ Tenancy request inserted successfully into tenancies table');
+
+      print('✅ Tenancy request created');
     } catch (e) {
       print('❌ Error creating tenancy request: $e');
       rethrow;
     }
   }
+//!--------------------end of new method--------------------
 }

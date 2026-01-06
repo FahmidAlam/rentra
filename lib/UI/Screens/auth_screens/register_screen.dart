@@ -458,7 +458,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                         color: RentraColors.darkTeal,
                                         fontWeight: FontWeight.w600,
                                       ),
-                                  //recognizer: TapGestureRecognizer().onTap(() => Navigator.pop(context)),
                                   recognizer: TapGestureRecognizer()..onTap = () => Navigator.pop(context),
                                 ),
                               ],

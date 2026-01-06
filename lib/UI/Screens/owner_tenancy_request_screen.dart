@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:rentra/Application/tenancy_controller.dart';
+import 'package:rentra/core/models/tenancy.dart';
 import 'package:rentra/core/supabase_client.dart';
 import 'package:rentra/core/theme/app_theme.dart';
 import 'package:rentra/UI/widgets/reusable_widgets.dart';
@@ -29,7 +30,12 @@ class _OwnerTenancyRequestsScreenState
     widget.controller.loadPendingForOwner(currentUser.id);
   }
 
-  Future<void> _fetchTenantProfile(String tenantId) async {
+  Future<Map<String, dynamic>?> _fetchTenantProfile(String tenantId) async {
+    // Return cached data if available
+    if (_tenantDetails.containsKey(tenantId)) {
+      return _tenantDetails[tenantId];
+    }
+    
     try {
       final response = await SupabaseManager.supabase
           .from('profiles')
@@ -38,9 +44,11 @@ class _OwnerTenancyRequestsScreenState
           .single();
 
       _tenantDetails[tenantId] = response;
+      return response;
     } catch (e) {
       print('Error fetching tenant profile: $e');
       _tenantDetails[tenantId] = null;
+      return null;
     }
   }
 
@@ -113,6 +121,8 @@ class _OwnerTenancyRequestsScreenState
             itemCount: widget.controller.pendingTenancies.length,
             itemBuilder: (_, index) {
               final req = widget.controller.pendingTenancies[index];
+              // req is a Tenancy object - we need to get created_at from raw data
+              // For now, use current time as fallback since Tenancy model doesn't have createdAt
               return _buildRequestCardWithTenantInfo(req);
             },
           ),
@@ -121,11 +131,29 @@ class _OwnerTenancyRequestsScreenState
     );
   }
 
-  Widget _buildRequestCardWithTenantInfo(dynamic req) {
-    return FutureBuilder(
+  Widget _buildRequestCardWithTenantInfo(Tenancy req) {
+    return FutureBuilder<Map<String, dynamic>?>(
       future: _fetchTenantProfile(req.tenantId),
       builder: (context, snapshot) {
-        final tenantInfo = _tenantDetails[req.tenantId];
+        // Show loading state
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Card(
+            margin: const EdgeInsets.only(bottom: 16),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  const CircularProgressIndicator(),
+                  const SizedBox(width: 16),
+                  const Text('Loading tenant info...'),
+                ],
+              ),
+            ),
+          );
+        }
+        
+        // Get tenant info from snapshot data
+        final tenantInfo = snapshot.data;
         final tenantEmail = tenantInfo?['email'] ?? 'N/A';
         final tenantName = tenantInfo?['full_name'] ?? 'N/A';
         final tenantPhone = tenantInfo?['phone'] ?? 'N/A';
@@ -252,7 +280,9 @@ class _OwnerTenancyRequestsScreenState
                         RentraInfoRow(
                           icon: Icons.calendar_month,
                           label: 'Requested On',
-                          value: _formatDate(DateTime.parse(req.createdAt)),
+                          value: req.startDate != null 
+                              ? _formatDate(req.startDate!)
+                              : 'N/A',
                         ),
                         const VSpace(12),
                         RentraInfoRow(

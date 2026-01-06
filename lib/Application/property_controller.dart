@@ -45,39 +45,6 @@ class PropertyController extends ChangeNotifier {
     return repository.getPropertyById(id);
   }
 
-  ///! Create property
-  // Future<void> addProperty(Property newProperty, {
-  //   required String title,
-  //   required String address,
-  //   required String city,
-  //   required String description,
-  //   required String coverImageUrl,
-  //   required List<String> galleryImages,
-  // }) async {
-  //   final user = SupabaseManager.supabase.auth.currentUser;
-  //   if (user == null) throw Exception('User not authenticated');
-
-  //   try {
-  //     _isLoading = true;
-  //     notifyListeners();
-
-  //     await repository.addProperty(
-  //       ownerId: user.id,
-  //       title: title,
-  //       address: address,
-  //       city: city,
-  //       description: description,
-  //       coverImageUrl: coverImageUrl,
-  //       galleryImages: galleryImages,
-  //     );
-
-  //     // Refresh list after adding
-  //     await fetchProperties();
-  //   } finally {
-  //     _isLoading = false;
-  //     notifyListeners();
-  //   }
-  // }
   Future<void> addProperty({
   required String title,
   required String address,

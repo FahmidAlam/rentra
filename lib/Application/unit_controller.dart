@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:rentra/Data/repositories/unit_repository.dart';
 import 'package:rentra/core/models/unit.dart';
+import 'package:rentra/core/supabase_client.dart';
 
 class UnitController extends ChangeNotifier {
   final UnitRepository repository;
@@ -46,8 +47,35 @@ class UnitController extends ChangeNotifier {
     }
   }
 
+  // Future<void> toggleAvailability(Unit unit) async {
+  //   await repository.setAvailability(unit.id, !unit.isAvailable);
+  //   notifyListeners();
+  // }
   Future<void> toggleAvailability(Unit unit) async {
-    await repository.setAvailability(unit.id, !unit.isAvailable);
-    notifyListeners();
+    try {
+      // ✅ SAFETY CHECK: Prevent marking available if tenant is active
+      if (!unit.isAvailable) {
+        // Trying to mark as available - check for active tenancy
+        final activeTenancy = await SupabaseManager.supabase
+            .from('tenancies')
+            .select('id, tenant_id')
+            .eq('unit_id', unit.id)
+            .eq('active', true)
+            .maybeSingle();
+
+        if (activeTenancy != null) {
+          throw Exception(
+            'Cannot make unit available: An active tenant is currently living here',
+          );
+        }
+      }
+
+      // Safe to toggle
+      await repository.setAvailability(unit.id, !unit.isAvailable);
+      notifyListeners();
+    } catch (e) {
+      print('❌ Error toggling availability: $e');
+      rethrow;
+    }
   }
 }

@@ -1,3 +1,497 @@
+// import 'package:flutter/material.dart';
+// import 'package:rentra/Application/tenancy_controller.dart';
+// import 'package:rentra/core/app_dependencies.dart';
+// import 'package:rentra/core/supabase_client.dart';
+// import 'package:rentra/core/theme/app_theme.dart';
+// import 'package:rentra/UI/widgets/reusable_widgets.dart';
+
+
+// //!------------- new imports to align with the project architecture
+// import 'package:rentra/Application/auth_controller.dart';
+
+
+// class TenantRequestStatusScreen extends StatefulWidget {
+//   const TenantRequestStatusScreen({super.key});
+
+//   @override
+//   State<TenantRequestStatusScreen> createState() =>
+//       _TenantRequestStatusScreenState();
+// }
+
+// class _TenantRequestStatusScreenState extends State<TenantRequestStatusScreen> {
+//   late final TenancyController _controller;
+//   bool _noUser = false;
+//   bool _dataLoaded = false;
+//   String? _errorMessage;
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     _controller = AppDependencies.tenancyController;
+
+//     final currentUser = SupabaseManager.supabase.auth.currentUser;
+//     if (currentUser == null) {
+//       _noUser = true;
+//       _dataLoaded = true;
+//       return;
+//     }
+
+//     _loadTenantRequests(currentUser.id);
+//   }
+
+//   Future<void> _loadTenantRequests(String tenantId) async {
+//     if (!mounted) return;
+
+//     setState(() {
+//       _dataLoaded = false;
+//       _errorMessage = null;
+//     });
+
+//     try {
+//       print('🔄 Loading requests for tenant: $tenantId');
+
+//       final response = await SupabaseManager.supabase.from('tenancies').select('''
+//           id,
+//           unit_id,
+//           tenant_id,
+//           status,
+//           created_at,
+//           units!inner(
+//             id,
+//             property_id,
+//             rent,
+//             unit_number,
+//             properties!inner(
+//               id,
+//               title,
+//               city,
+//               image_url,
+//               owner_id
+//             )
+//           )
+//         ''').eq('tenant_id', tenantId).order('created_at', ascending: false);
+
+//       final data = response as List<dynamic>;
+//       print('✅ Loaded ${data.length} requests');
+
+//       if (!mounted) return;
+
+//       setState(() {
+//         _controller.tenantTenancies = data;
+//         _dataLoaded = true;
+//         _errorMessage = null;
+//       });
+//     } catch (e) {
+//       print('❌ Error loading requests: $e');
+
+//       if (!mounted) return;
+
+//       setState(() {
+//         _controller.tenantTenancies = [];
+//         _dataLoaded = true;
+//         _errorMessage = e.toString();
+//       });
+
+//       // Show error snackbar
+//       ScaffoldMessenger.of(context).showSnackBar(
+//         SnackBar(
+//           content: Text('Failed to load requests: ${e.toString()}'),
+//           backgroundColor: Colors.red,
+//           duration: const Duration(seconds: 4),
+//           action: SnackBarAction(
+//             label: 'Retry',
+//             textColor: Colors.white,
+//             onPressed: () {
+//               final user = SupabaseManager.supabase.auth.currentUser;
+//               if (user != null) {
+//                 _loadTenantRequests(user.id);
+//               }
+//             },
+//           ),
+//         ),
+//       );
+//     }
+//   }
+
+//   Future<void> _handleRefresh() async {
+//     final user = SupabaseManager.supabase.auth.currentUser;
+//     if (user != null) {
+//       await _loadTenantRequests(user.id);
+//     }
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     // 🔄 LOADING STATE
+//     if (!_dataLoaded) {
+//       return Scaffold(
+//         appBar: AppBar(
+//           title: const Text('My Requests'),
+//           centerTitle: true,
+//         ),
+//         body: const Center(
+//           child: Column(
+//             mainAxisAlignment: MainAxisAlignment.center,
+//             children: [
+//               CircularProgressIndicator(),
+//               VSpace(16),
+//               Text(
+//                 'Loading your requests...',
+//                 style: TextStyle(fontSize: 14, color: Colors.grey),
+//               ),
+//             ],
+//           ),
+//         ),
+//       );
+//     }
+
+//     // ❌ NOT SIGNED IN
+//     if (_noUser) {
+//       return Scaffold(
+//         appBar: AppBar(
+//           title: const Text('My Requests'),
+//           centerTitle: true,
+//         ),
+//         body: RentraEmptyState(
+//           icon: Icons.lock,
+//           title: 'Please sign in',
+//           subtitle: 'Sign in to view your tenancy requests',
+//         ),
+//       );
+//     }
+
+//     // 📭 NO REQUESTS
+//     if (_controller.tenantTenancies.isEmpty) {
+//       return Scaffold(
+//         appBar: AppBar(
+//           title: const Text('My Requests'),
+//           centerTitle: true,
+//           actions: [
+//             IconButton(
+//               icon: const Icon(Icons.refresh),
+//               onPressed: _handleRefresh,
+//               tooltip: 'Refresh',
+//             ),
+//           ],
+//         ),
+//         body: RefreshIndicator(
+//           onRefresh: _handleRefresh,
+//           child: ListView(
+//             padding: const EdgeInsets.all(16),
+//             children: [
+//               SizedBox(
+//                 height: MediaQuery.of(context).size.height * 0.7,
+//                 child: RentraEmptyState(
+//                   icon: Icons.inbox,
+//                   title: 'No requests yet',
+//                   subtitle: 'Browse properties and send requests to get started',
+//                 ),
+//               ),
+//             ],
+//           ),
+//         ),
+//       );
+//     }
+
+//     // ✅ REQUESTS LIST
+//     return Scaffold(
+//       appBar: AppBar(
+//         title: const Text('My Requests'),
+//         centerTitle: true,
+//         elevation: 0,
+//         backgroundColor: Colors.white,
+//         foregroundColor: Colors.black,
+//         actions: [
+//           IconButton(
+//             icon: const Icon(Icons.refresh),
+//             onPressed: _handleRefresh,
+//             tooltip: 'Refresh',
+//           ),
+//         ],
+//       ),
+//       body: RefreshIndicator(
+//         onRefresh: _handleRefresh,
+//         child: ListView.builder(
+//           padding: const EdgeInsets.all(16),
+//           itemCount: _controller.tenantTenancies.length,
+//           itemBuilder: (_, index) {
+//             final tenancy = _controller.tenantTenancies[index] as dynamic;
+//             return _buildRequestCard(tenancy);
+//           },
+//         ),
+//       ),
+//     );
+//   }
+
+//   Widget _buildRequestCard(dynamic tenancy) {
+//     final status = tenancy['status'] as String;
+//     final statusColor = _getStatusColor(status);
+//     final unit = tenancy['units'] as Map;
+//     final property = unit['properties'] as Map;
+//     final createdAt = DateTime.parse(tenancy['created_at'] as String);
+
+//     return Card(
+//       margin: const EdgeInsets.only(bottom: 16),
+//       elevation: 2,
+//       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+//       child: Container(
+//         decoration: BoxDecoration(
+//           borderRadius: BorderRadius.circular(16),
+//           border: Border(
+//             left: BorderSide(
+//               color: statusColor,
+//               width: 4,
+//             ),
+//           ),
+//         ),
+//         child: Padding(
+//           padding: const EdgeInsets.all(16),
+//           child: Column(
+//             crossAxisAlignment: CrossAxisAlignment.start,
+//             children: [
+//               // 🏠 PROPERTY IMAGE
+//               ClipRRect(
+//                 borderRadius: BorderRadius.circular(12),
+//                 child: Image.network(
+//                   property['image_url'] as String,
+//                   height: 150,
+//                   width: double.infinity,
+//                   fit: BoxFit.cover,
+//                   loadingBuilder: (context, child, loadingProgress) {
+//                     if (loadingProgress == null) return child;
+//                     return Container(
+//                       height: 150,
+//                       color: RentraColors.background,
+//                       child: const Center(
+//                         child: CircularProgressIndicator(),
+//                       ),
+//                     );
+//                   },
+//                   errorBuilder: (_, __, ___) => Container(
+//                     height: 150,
+//                     color: RentraColors.background,
+//                     child: const Center(
+//                       child: Icon(Icons.image_not_supported, size: 40),
+//                     ),
+//                   ),
+//                 ),
+//               ),
+//               const VSpace(12),
+
+//               // 🏘️ PROPERTY INFO & STATUS
+//               Row(
+//                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                 crossAxisAlignment: CrossAxisAlignment.start,
+//                 children: [
+//                   Expanded(
+//                     child: Column(
+//                       crossAxisAlignment: CrossAxisAlignment.start,
+//                       children: [
+//                         Text(
+//                           property['title'] as String,
+//                           style: const TextStyle(
+//                             fontSize: 16,
+//                             fontWeight: FontWeight.bold,
+//                             color: RentraColors.darkText,
+//                           ),
+//                           maxLines: 2,
+//                           overflow: TextOverflow.ellipsis,
+//                         ),
+//                         const VSpace(4),
+//                         Row(
+//                           children: [
+//                             const Icon(
+//                               Icons.location_on,
+//                               size: 14,
+//                               color: RentraColors.lightText,
+//                             ),
+//                             const HSpace(4),
+//                             Expanded(
+//                               child: Text(
+//                                 property['city'] as String,
+//                                 style: const TextStyle(
+//                                   fontSize: 12,
+//                                   color: RentraColors.lightText,
+//                                 ),
+//                                 maxLines: 1,
+//                                 overflow: TextOverflow.ellipsis,
+//                               ),
+//                             ),
+//                           ],
+//                         ),
+//                       ],
+//                     ),
+//                   ),
+//                   const HSpace(12),
+//                   RentraStatusBadge(
+//                     label: status,
+//                     status: status,
+//                     icon: _getStatusIcon(status),
+//                   ),
+//                 ],
+//               ),
+
+//               const VSpace(12),
+
+//               // 📋 UNIT DETAILS
+//               Container(
+//                 padding: const EdgeInsets.all(12),
+//                 decoration: BoxDecoration(
+//                   color: RentraColors.background,
+//                   borderRadius: BorderRadius.circular(8),
+//                 ),
+//                 child: Row(
+//                   mainAxisAlignment: MainAxisAlignment.spaceAround,
+//                   children: [
+//                     _buildInfoItem(
+//                       'Unit',
+//                       unit['unit_number'] as String,
+//                     ),
+//                     Container(
+//                       height: 30,
+//                       width: 1,
+//                       color: RentraColors.divider,
+//                     ),
+//                     _buildInfoItem(
+//                       'Rent',
+//                       '৳${(unit['rent'] as num).toStringAsFixed(0)}',
+//                     ),
+//                     Container(
+//                       height: 30,
+//                       width: 1,
+//                       color: RentraColors.divider,
+//                     ),
+//                     _buildInfoItem(
+//                       'Requested',
+//                       _formatDate(createdAt),
+//                     ),
+//                   ],
+//                 ),
+//               ),
+
+//               const VSpace(12),
+
+//               // 📝 STATUS MESSAGE
+//               Container(
+//                 padding: const EdgeInsets.all(12),
+//                 decoration: BoxDecoration(
+//                   color: statusColor.withOpacity(0.05),
+//                   borderRadius: BorderRadius.circular(8),
+//                   border: Border.all(
+//                     color: statusColor.withOpacity(0.3),
+//                   ),
+//                 ),
+//                 child: Row(
+//                   children: [
+//                     Icon(
+//                       _getStatusIcon(status),
+//                       color: statusColor,
+//                       size: 18,
+//                     ),
+//                     const SizedBox(width: 8),
+//                     Expanded(
+//                       child: Text(
+//                         _getStatusMessage(status),
+//                         style: TextStyle(
+//                           fontSize: 13,
+//                           color: statusColor,
+//                           fontWeight: FontWeight.w500,
+//                         ),
+//                       ),
+//                     ),
+//                   ],
+//                 ),
+//               ),
+//             ],
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+
+//   Color _getStatusColor(String status) {
+//     switch (status.toLowerCase()) {
+//       case 'approved':
+//         return RentraColors.success;
+//       case 'rejected':
+//         return RentraColors.error;
+//       case 'pending':
+//       default:
+//         return RentraColors.pending;
+//     }
+//   }
+
+//   IconData _getStatusIcon(String status) {
+//     switch (status.toLowerCase()) {
+//       case 'approved':
+//         return Icons.check_circle;
+//       case 'rejected':
+//         return Icons.cancel;
+//       case 'pending':
+//       default:
+//         return Icons.schedule;
+//     }
+//   }
+
+//   String _getStatusMessage(String status) {
+//     switch (status.toLowerCase()) {
+//       case 'approved':
+//         return '✅ Your request has been approved! Check the details above and prepare for tenancy.';
+//       case 'rejected':
+//         return '❌ Your request was rejected. Try requesting another unit or contact the owner.';
+//       case 'pending':
+//       default:
+//         return '⏳ Your request is pending. The owner will review it soon.';
+//     }
+//   }
+
+//   String _formatDate(DateTime date) {
+//     final months = [
+//       'Jan',
+//       'Feb',
+//       'Mar',
+//       'Apr',
+//       'May',
+//       'Jun',
+//       'Jul',
+//       'Aug',
+//       'Sep',
+//       'Oct',
+//       'Nov',
+//       'Dec'
+//     ];
+//     return '${date.day} ${months[date.month - 1]} ${date.year}';
+//   }
+
+//   Widget _buildInfoItem(String label, String value) {
+//     return Expanded(
+//       child: Column(
+//         children: [
+//           Text(
+//             label,
+//             style: TextStyle(
+//               fontSize: 11,
+//               fontWeight: FontWeight.w500,
+//               color: RentraColors.lightText,
+//             ),
+//           ),
+//           const VSpace(4),
+//           Text(
+//             value,
+//             style: const TextStyle(
+//               fontSize: 12,
+//               fontWeight: FontWeight.bold,
+//               color: RentraColors.darkText,
+//             ),
+//             textAlign: TextAlign.center,
+//             maxLines: 1,
+//             overflow: TextOverflow.ellipsis,
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+// }
 import 'package:flutter/material.dart';
 import 'package:rentra/Application/tenancy_controller.dart';
 import 'package:rentra/core/app_dependencies.dart';
@@ -5,11 +499,13 @@ import 'package:rentra/core/supabase_client.dart';
 import 'package:rentra/core/theme/app_theme.dart';
 import 'package:rentra/UI/widgets/reusable_widgets.dart';
 
-
-//!------------- new imports to align with the project architecture
-import 'package:rentra/Application/auth_controller.dart';
-
-
+/// ✅ PRESENTATION LAYER ONLY
+/// Responsibilities:
+/// - Display UI
+/// - Handle user interactions
+/// - Listen to controller state changes
+/// - NO direct database access
+/// - NO business logic
 class TenantRequestStatusScreen extends StatefulWidget {
   const TenantRequestStatusScreen({super.key});
 
@@ -21,179 +517,163 @@ class TenantRequestStatusScreen extends StatefulWidget {
 class _TenantRequestStatusScreenState extends State<TenantRequestStatusScreen> {
   late final TenancyController _controller;
   bool _noUser = false;
-  bool _dataLoaded = false;
-  String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
     _controller = AppDependencies.tenancyController;
 
+    // ✅ Check auth state
     final currentUser = SupabaseManager.supabase.auth.currentUser;
     if (currentUser == null) {
-      _noUser = true;
-      _dataLoaded = true;
+      setState(() => _noUser = true);
       return;
     }
 
-    _loadTenantRequests(currentUser.id);
+    // ✅ Delegate to controller - NO data fetching here
+    _loadData(currentUser.id);
+
+    // ✅ Listen to controller state changes
+    _controller.addListener(_onControllerUpdate);
   }
 
-  Future<void> _loadTenantRequests(String tenantId) async {
+  @override
+  void dispose() {
+    _controller.removeListener(_onControllerUpdate);
+    super.dispose();
+  }
+
+  /// ✅ Simple controller method call - no business logic
+  Future<void> _loadData(String tenantId) async {
+    await _controller.loadTenanciesForTenant(tenantId);
+  }
+
+  /// ✅ Handle controller state changes
+  void _onControllerUpdate() {
     if (!mounted) return;
 
-    setState(() {
-      _dataLoaded = false;
-      _errorMessage = null;
-    });
-
-    try {
-      print('🔄 Loading requests for tenant: $tenantId');
-
-      final response = await SupabaseManager.supabase.from('tenancies').select('''
-          id,
-          unit_id,
-          tenant_id,
-          status,
-          created_at,
-          units!inner(
-            id,
-            property_id,
-            rent,
-            unit_number,
-            properties!inner(
-              id,
-              title,
-              city,
-              image_url,
-              owner_id
-            )
-          )
-        ''').eq('tenant_id', tenantId).order('created_at', ascending: false);
-
-      final data = response as List<dynamic>;
-      print('✅ Loaded ${data.length} requests');
-
-      if (!mounted) return;
-
-      setState(() {
-        _controller.tenantTenancies = data;
-        _dataLoaded = true;
-        _errorMessage = null;
-      });
-    } catch (e) {
-      print('❌ Error loading requests: $e');
-
-      if (!mounted) return;
-
-      setState(() {
-        _controller.tenantTenancies = [];
-        _dataLoaded = true;
-        _errorMessage = e.toString();
-      });
-
-      // Show error snackbar
+    // Show error if exists
+    if (_controller.errorMessage != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to load requests: ${e.toString()}'),
+          content: Text(_controller.errorMessage!),
           backgroundColor: Colors.red,
           duration: const Duration(seconds: 4),
           action: SnackBarAction(
             label: 'Retry',
             textColor: Colors.white,
-            onPressed: () {
-              final user = SupabaseManager.supabase.auth.currentUser;
-              if (user != null) {
-                _loadTenantRequests(user.id);
-              }
-            },
+            onPressed: _handleRefresh,
           ),
         ),
       );
     }
+
+    // Trigger rebuild
+    setState(() {});
   }
 
+  /// ✅ Refresh handler
   Future<void> _handleRefresh() async {
     final user = SupabaseManager.supabase.auth.currentUser;
     if (user != null) {
-      await _loadTenantRequests(user.id);
+      await _loadData(user.id);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     // 🔄 LOADING STATE
-    if (!_dataLoaded) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('My Requests'),
-          centerTitle: true,
-        ),
-        body: const Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(),
-              VSpace(16),
-              Text(
-                'Loading your requests...',
-                style: TextStyle(fontSize: 14, color: Colors.grey),
-              ),
-            ],
-          ),
-        ),
-      );
+    if (_controller.isLoading && _controller.tenantTenancies.isEmpty) {
+      return _buildLoadingState();
     }
 
     // ❌ NOT SIGNED IN
     if (_noUser) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('My Requests'),
-          centerTitle: true,
-        ),
-        body: RentraEmptyState(
-          icon: Icons.lock,
-          title: 'Please sign in',
-          subtitle: 'Sign in to view your tenancy requests',
-        ),
-      );
+      return _buildNoUserState();
     }
 
     // 📭 NO REQUESTS
     if (_controller.tenantTenancies.isEmpty) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('My Requests'),
-          centerTitle: true,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.refresh),
-              onPressed: _handleRefresh,
-              tooltip: 'Refresh',
-            ),
-          ],
-        ),
-        body: RefreshIndicator(
-          onRefresh: _handleRefresh,
-          child: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              SizedBox(
-                height: MediaQuery.of(context).size.height * 0.7,
-                child: RentraEmptyState(
-                  icon: Icons.inbox,
-                  title: 'No requests yet',
-                  subtitle: 'Browse properties and send requests to get started',
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
+      return _buildEmptyState();
     }
 
     // ✅ REQUESTS LIST
+    return _buildRequestsList();
+  }
+
+  // ==========================================
+  // UI STATE BUILDERS
+  // ==========================================
+
+  Widget _buildLoadingState() {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('My Requests'),
+        centerTitle: true,
+      ),
+      body: const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(),
+            VSpace(16),
+            Text(
+              'Loading your requests...',
+              style: TextStyle(fontSize: 14, color: Colors.grey),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNoUserState() {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('My Requests'),
+        centerTitle: true,
+      ),
+      body: RentraEmptyState(
+        icon: Icons.lock,
+        title: 'Please sign in',
+        subtitle: 'Sign in to view your tenancy requests',
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('My Requests'),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _handleRefresh,
+            tooltip: 'Refresh',
+          ),
+        ],
+      ),
+      body: RefreshIndicator(
+        onRefresh: _handleRefresh,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.7,
+              child: RentraEmptyState(
+                icon: Icons.inbox,
+                title: 'No requests yet',
+                subtitle: 'Browse properties and send requests to get started',
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRequestsList() {
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Requests'),
@@ -222,6 +702,10 @@ class _TenantRequestStatusScreenState extends State<TenantRequestStatusScreen> {
       ),
     );
   }
+
+  // ==========================================
+  // REQUEST CARD - PURE UI
+  // ==========================================
 
   Widget _buildRequestCard(dynamic tenancy) {
     final status = tenancy['status'] as String;
@@ -409,6 +893,10 @@ class _TenantRequestStatusScreenState extends State<TenantRequestStatusScreen> {
     );
   }
 
+  // ==========================================
+  // UI HELPER METHODS - PRESENTATION LOGIC ONLY
+  // ==========================================
+
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
       case 'approved':
@@ -492,115 +980,3 @@ class _TenantRequestStatusScreenState extends State<TenantRequestStatusScreen> {
     );
   }
 }
-// // TenantRequestStatusScreen.dart
-
-// // TenantRequestStatusScreen.dart
-// import 'package:flutter/material.dart';
-// import 'package:rentra/Application/tenancy_controller.dart';
-// import 'package:rentra/Application/auth_controller.dart';
-// import 'package:rentra/UI/widgets/property_card.dart';
-// import 'package:rentra/UI/widgets/reusable_widgets.dart';
-// import 'package:rentra/core/app_dependencies.dart';
-// import 'package:rentra/core/models/property.dart';
-
-
-// class TenantRequestStatusScreen extends StatefulWidget {
-//   const TenantRequestStatusScreen({super.key});
-
-//   @override
-//   State<TenantRequestStatusScreen> createState() =>
-//       _TenantRequestStatusScreenState();
-// }
-
-// class _TenantRequestStatusScreenState extends State<TenantRequestStatusScreen> {
-//   late final TenancyController _controller;
-//   final AuthController _auth = AuthController();
-
-//   @override
-//   void initState() {
-//     super.initState();
-//     _controller = AppDependencies.tenancyController;
-
-//     final user = _auth.currentUser;
-//     if (user != null) {
-//       _controller.loadTenanciesForTenant(user.id);
-//     }
-
-//     // Listen for changes in controller
-//     _controller.addListener(() {
-//       if (mounted) setState(() {});
-//     });
-//   }
-
-//   @override
-//   void dispose() {
-//     _controller.removeListener(() {});
-//     super.dispose();
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     final user = _auth.currentUser;
-
-//     if (user == null) {
-//       return Scaffold(
-//         appBar: AppBar(title: const Text('My Requests')),
-//         body: const RentraEmptyState(
-//           icon: Icons.lock,
-//           title: 'Please sign in',
-//           subtitle: 'Sign in to view your tenancy requests',
-//         ),
-//       );
-//     }
-
-//     if (_controller.isLoading) {
-//       return const Scaffold(
-//         body: Center(child: CircularProgressIndicator()),
-//       );
-//     }
-
-//     if (_controller.errorMessage != null) {
-//       return Scaffold(
-//         appBar: AppBar(title: const Text('My Requests')),
-//         body: Center(child: Text(_controller.errorMessage!)),
-//       );
-//     }
-
-//     if (_controller.tenantTenancies.isEmpty) {
-//       return Scaffold(
-//         appBar: AppBar(title: const Text('My Requests')),
-//         body: const RentraEmptyState(
-//           icon: Icons.inbox,
-//           title: 'No requests yet',
-//           subtitle: 'Browse properties and send requests',
-//         ),
-//       );
-//     }
-
-//     return Scaffold(
-//       appBar: AppBar(title: const Text('My Requests')),
-//       body: ListView.builder(
-//         itemCount: _controller.tenantTenancies.length,
-//         itemBuilder: (_, index) {
-//           final tenancy = _controller.tenantTenancies[index];
-
-//           final propertyJson =
-//               (tenancy['units']?['properties'] as Map<String, dynamic>?);
-//           if (propertyJson == null) return const SizedBox();
-
-//           final property = Property(
-//             id: propertyJson['id'] as int,
-//             title: propertyJson['title'] ?? 'Unknown Property',
-//             city: propertyJson['city'] ?? '',
-//             imageUrl: propertyJson['image_url'] ?? '',
-//             ownerId: propertyJson['owner_id'] ?? '',
-//             address: propertyJson['address'] ?? '',
-//             description: propertyJson['description'] ?? '',
-//           );
-
-//           return PropertyCard(property: property);
-//         },
-//       ),
-//     );
-//   }
-// }

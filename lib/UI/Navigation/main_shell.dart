@@ -14,12 +14,7 @@ import 'package:rentra/core/app_dependencies.dart';
 import 'package:rentra/core/theme/app_theme.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// ✅ REFACTORED MainShell
-/// 
-/// Changes made:
-/// - Removed hardcoded colors from BottomNavigationBar
-/// - Theme handles all styling automatically
-/// - Cleaner, more maintainable code
+
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
 
@@ -157,25 +152,3 @@ class _MainShellState extends State<MainShell> {
     }
   }
 }
-
-/* ✅ IMPROVEMENTS SUMMARY:
- * 
- * PropertyListScreen:
- * - Removed hardcoded Color.fromARGB(255, 3, 56, 99)
- * - Uses RentraEmptyState for empty list
- * - Theme-colored loading indicator
- * 
- * MainShell:
- * - Removed hardcoded Colors.blue and Color.fromARGB(255, 233, 76, 37)
- * - Theme handles BottomNavigationBar styling automatically
- * - Cleaner code
- * 
- * Your theme already defines these in app_theme.dart:
- * bottomNavigationBarTheme: BottomNavigationBarThemeData(
- *   backgroundColor: RentraColors.white,
- *   selectedItemColor: RentraColors.darkTeal,
- *   unselectedItemColor: RentraColors.lightText,
- *   elevation: 8,
- *   type: BottomNavigationBarType.fixed,
- * )
- */

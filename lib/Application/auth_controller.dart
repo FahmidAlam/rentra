@@ -1,10 +1,21 @@
+import 'package:rentra/core/models/user_profile.dart';
 import "package:supabase_flutter/supabase_flutter.dart";
 import 'package:rentra/core/supabase_client.dart';
-
+import 'package:rentra/Data/datasources/profile_remote_datasource.dart';
+import 'package:rentra/Data/repositories/profile_repository.dart';
 class AuthController {
   final SupabaseClient _client = SupabaseManager.supabase;
+  
+  // ✅ Repository for advanced profile operations
+  final ProfileRepository _profileRepository = ProfileRepository(
+    ProfileRemoteDataSource(),
+  );
 
   User? get currentUser => _client.auth.currentUser;
+
+  // ═══════════════════════════════════════════════════════════════
+  // ✅ EXISTING METHODS - UNCHANGED (Login/Register compatibility)
+  // ═══════════════════════════════════════════════════════════════
 
   /// Login user
   Future<AuthResponse> login(String email, String password) async {
@@ -30,8 +41,11 @@ class AuthController {
     try {
       print('⏳ Saving profile for user: $userId');
 
-      final existing =
-          await _client.from('profiles').select('id').eq('id', userId).maybeSingle();
+      final existing = await _client
+          .from('profiles')
+          .select('id')
+          .eq('id', userId)
+          .maybeSingle();
 
       if (existing == null) {
         // Create new profile
@@ -65,8 +79,11 @@ class AuthController {
     required String role,
   }) async {
     try {
-      final existing =
-          await _client.from('profiles').select('id').eq('id', userId).maybeSingle();
+      final existing = await _client
+          .from('profiles')
+          .select('id')
+          .eq('id', userId)
+          .maybeSingle();
       if (existing == null) {
         await _client.from('profiles').insert({'id': userId, 'role': role});
       } else {
@@ -77,7 +94,7 @@ class AuthController {
     }
   }
 
-  /// Fetch user role
+  /// Fetch user role - KEPT UNCHANGED for RoleController
   Future<String?> fetchUserRole(String userId) async {
     try {
       final res = await _client
@@ -92,7 +109,7 @@ class AuthController {
     }
   }
 
-  /// Fetch full user profile
+  /// Fetch full user profile - KEPT UNCHANGED (returns raw Map)
   Future<Map<String, dynamic>?> fetchUserProfile(String userId) async {
     try {
       return await _client
@@ -108,5 +125,50 @@ class AuthController {
   /// Logout user
   Future<void> logout() async {
     await _client.auth.signOut();
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // ✅ NEW METHODS - For enhanced profile management
+  // ═══════════════════════════════════════════════════════════════
+
+  /// Fetch user profile as typed UserProfile object
+  /// Use this in ProfileScreen for type-safe access
+  Future<UserProfile?> getUserProfile(String userId) async {
+    try {
+      return await _profileRepository.getProfileById(userId);
+    } catch (e) {
+      print('❌ Error fetching typed profile: $e');
+      return null;
+    }
+  }
+
+  /// Update specific profile fields
+  /// Use this for profile editing functionality
+  Future<bool> updateUserProfile({
+    required String userId,
+    String? fullName,
+    String? phone,
+  }) async {
+    try {
+      return await _profileRepository.updateProfile(
+        userId,
+        fullName: fullName,
+        phone: phone,
+      );
+    } catch (e) {
+      print('❌ Error updating user profile: $e');
+      return false;
+    }
+  }
+
+  /// Check if profile is complete
+  Future<bool> isProfileComplete(String userId) async {
+    try {
+      final profile = await getUserProfile(userId);
+      return profile?.isComplete ?? false;
+    } catch (e) {
+      print('❌ Error checking profile completion: $e');
+      return false;
+    }
   }
 }

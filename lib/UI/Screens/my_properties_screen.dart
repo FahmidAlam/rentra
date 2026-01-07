@@ -1,4 +1,3 @@
-
 // import 'package:flutter/material.dart';
 // import 'package:rentra/Application/property_controller.dart';
 // import 'package:rentra/UI/widgets/property_card.dart';
@@ -20,25 +19,9 @@
 //     final textTheme = theme.textTheme;
 
 //     return Scaffold(
-//       // ✅ Uses appBarTheme automatically
+//       // ✅ Fully theme-driven AppBar
 //       appBar: AppBar(
 //         title: const Text('My Properties'),
-//         actions: [
-//           IconButton(
-//             tooltip: 'Add Property',
-//             icon: const Icon(Icons.add),
-//             onPressed: () {
-//               Navigator.push(
-//                 context,
-//                 MaterialPageRoute(
-//                   builder: (context) => AddEditPropertyScreen(
-//                     controller: propertyController,
-//                   ),
-//                 ),
-//               );
-//             },
-//           ),
-//         ],
 //       ),
 
 //       body: AnimatedBuilder(
@@ -61,13 +44,13 @@
 
 //           return GridView.builder(
 //             padding: const EdgeInsets.all(12),
+//             itemCount: myProperties.length,
 //             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
 //               crossAxisCount: 2,
 //               crossAxisSpacing: 12,
 //               mainAxisSpacing: 12,
 //               childAspectRatio: 0.75,
 //             ),
-//             itemCount: myProperties.length,
 //             itemBuilder: (context, index) {
 //               final property = myProperties[index];
 
@@ -81,9 +64,9 @@
 //                   child: const Icon(Icons.delete, color: Colors.white),
 //                 ),
 //                 confirmDismiss: (_) async {
-//                   return await showDialog<bool>(
+//                   return showDialog<bool>(
 //                     context: context,
-//                     builder: (_) => AlertDialog(
+//                     builder: (context) => AlertDialog(
 //                       title: const Text('Delete Property'),
 //                       content: const Text(
 //                         'Are you sure you want to delete this property?',
@@ -106,7 +89,7 @@
 //                 },
 //                 child: Stack(
 //                   children: [
-//                     // ✅ PropertyCard already follows CardTheme
+//                     // ✅ Card respects CardTheme automatically
 //                     PropertyCard(property: property),
 
 //                     Positioned(
@@ -114,11 +97,11 @@
 //                       right: 8,
 //                       child: Column(
 //                         children: [
-//                           _buildActionButton(
+//                           _ActionButton(
 //                             icon: Icons.image,
-//                             color: colorScheme.primary,
 //                             tooltip: 'Manage Images',
-//                             onPressed: () {
+//                             color: colorScheme.primary,
+//                             onTap: () {
 //                               Navigator.push(
 //                                 context,
 //                                 MaterialPageRoute(
@@ -131,11 +114,11 @@
 //                             },
 //                           ),
 //                           const SizedBox(height: 8),
-//                           _buildActionButton(
+//                           _ActionButton(
 //                             icon: Icons.edit,
-//                             color: colorScheme.secondary,
 //                             tooltip: 'Edit Property',
-//                             onPressed: () {
+//                             color: colorScheme.secondary,
+//                             onTap: () {
 //                               Navigator.push(
 //                                 context,
 //                                 MaterialPageRoute(
@@ -159,20 +142,30 @@
 //       ),
 //     );
 //   }
+// }
 
-//   // ✅ Theme-aware custom action button
-//   Widget _buildActionButton({
-//     required IconData icon,
-//     required Color color,
-//     required VoidCallback onPressed,
-//     required String tooltip,
-//   }) {
-//     return Material(
-//       color: Colors.transparent,
-//       child: Tooltip(
-//         message: tooltip,
+// /// ✅ Small internal widget to keep UI consistent & readable
+// class _ActionButton extends StatelessWidget {
+//   final IconData icon;
+//   final String tooltip;
+//   final Color color;
+//   final VoidCallback onTap;
+
+//   const _ActionButton({
+//     required this.icon,
+//     required this.tooltip,
+//     required this.color,
+//     required this.onTap,
+//   });
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Tooltip(
+//       message: tooltip,
+//       child: Material(
+//         color: Colors.transparent,
 //         child: InkWell(
-//           onTap: onPressed,
+//           onTap: onTap,
 //           borderRadius: BorderRadius.circular(20),
 //           child: Container(
 //             width: 40,
@@ -213,11 +206,9 @@ class MyPropertiesScreen extends StatelessWidget {
     final textTheme = theme.textTheme;
 
     return Scaffold(
-      // ✅ Fully theme-driven AppBar
       appBar: AppBar(
         title: const Text('My Properties'),
       ),
-
       body: AnimatedBuilder(
         animation: propertyController,
         builder: (context, _) {
@@ -255,7 +246,10 @@ class MyPropertiesScreen extends StatelessWidget {
                   color: colorScheme.error,
                   alignment: Alignment.centerRight,
                   padding: const EdgeInsets.only(right: 16),
-                  child: const Icon(Icons.delete, color: Colors.white),
+                  child: Icon(
+                    Icons.delete,
+                    color: colorScheme.onError,
+                  ),
                 ),
                 confirmDismiss: (_) async {
                   return showDialog<bool>(
@@ -283,7 +277,6 @@ class MyPropertiesScreen extends StatelessWidget {
                 },
                 child: Stack(
                   children: [
-                    // ✅ Card respects CardTheme automatically
                     PropertyCard(property: property),
 
                     Positioned(
@@ -291,10 +284,11 @@ class MyPropertiesScreen extends StatelessWidget {
                       right: 8,
                       child: Column(
                         children: [
-                          _ActionButton(
+                          _PropertyActionButton(
                             icon: Icons.image,
                             tooltip: 'Manage Images',
-                            color: colorScheme.primary,
+                            backgroundColor: colorScheme.primary,
+                            foregroundColor: colorScheme.onPrimary,
                             onTap: () {
                               Navigator.push(
                                 context,
@@ -308,10 +302,11 @@ class MyPropertiesScreen extends StatelessWidget {
                             },
                           ),
                           const SizedBox(height: 8),
-                          _ActionButton(
+                          _PropertyActionButton(
                             icon: Icons.edit,
                             tooltip: 'Edit Property',
-                            color: colorScheme.secondary,
+                            backgroundColor: colorScheme.secondary,
+                            foregroundColor: colorScheme.onSecondary,
                             onTap: () {
                               Navigator.push(
                                 context,
@@ -338,17 +333,21 @@ class MyPropertiesScreen extends StatelessWidget {
   }
 }
 
-/// ✅ Small internal widget to keep UI consistent & readable
-class _ActionButton extends StatelessWidget {
+/// ✅ UI-only reusable widget
+/// ❌ No logic
+/// ❌ No navigation assumptions
+class _PropertyActionButton extends StatelessWidget {
   final IconData icon;
   final String tooltip;
-  final Color color;
+  final Color backgroundColor;
+  final Color foregroundColor;
   final VoidCallback onTap;
 
-  const _ActionButton({
+  const _PropertyActionButton({
     required this.icon,
     required this.tooltip,
-    required this.color,
+    required this.backgroundColor,
+    required this.foregroundColor,
     required this.onTap,
   });
 
@@ -365,12 +364,19 @@ class _ActionButton extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: color,
+              color: backgroundColor,
               shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.15),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Icon(
               icon,
-              color: Colors.white,
+              color: foregroundColor,
               size: 18,
             ),
           ),

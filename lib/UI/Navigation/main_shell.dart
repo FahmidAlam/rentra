@@ -11,8 +11,15 @@ import 'package:rentra/UI/Screens/profile_screen.dart';
 import 'package:rentra/UI/Screens/property_list_screen.dart';
 import 'package:rentra/UI/Screens/tenant_request_status_screen.dart';
 import 'package:rentra/core/app_dependencies.dart';
+import 'package:rentra/core/theme/app_theme.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+/// ✅ REFACTORED MainShell
+/// 
+/// Changes made:
+/// - Removed hardcoded colors from BottomNavigationBar
+/// - Theme handles all styling automatically
+/// - Cleaner, more maintainable code
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
 
@@ -22,10 +29,12 @@ class MainShell extends StatefulWidget {
 
 class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
+
   // Controllers
   late final PropertyController propertyController;
   final RoleController roleController = RoleController();
   final AuthController authController = AuthController();
+
   // State
   bool _loadingRole = true;
 
@@ -39,13 +48,6 @@ class _MainShellState extends State<MainShell> {
 
     final user = Supabase.instance.client.auth.currentUser;
     if (user != null) {
-      // roleController.loadRole(user.id).then((role) {
-      //   if (!mounted) return;
-      //   setState(() {
-      //     _role = role;
-      //     _loadingRole = false;
-      //   });
-      // }
       roleController.loadRole(user.id).then((_) {
         if (!mounted) return;
         setState(() {
@@ -58,7 +60,13 @@ class _MainShellState extends State<MainShell> {
   @override
   Widget build(BuildContext context) {
     if (_loadingRole) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(RentraColors.darkTeal),
+          ),
+        ),
+      );
     }
 
     return Scaffold(
@@ -77,10 +85,11 @@ class _MainShellState extends State<MainShell> {
               child: const Icon(Icons.add),
             )
           : null,
+      // ✅ BottomNavigationBar uses theme - removed hardcoded colors
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
-        selectedItemColor: Colors.blue,
-        unselectedItemColor: const Color.fromARGB(255, 233, 76, 37),
+        // ✅ REMOVED: selectedItemColor and unselectedItemColor
+        // Theme handles these automatically via bottomNavigationBarTheme
         onTap: (index) {
           setState(() {
             _currentIndex = index;
@@ -105,12 +114,12 @@ class _MainShellState extends State<MainShell> {
       ];
     }
 
-    // ✅ FIXED: Tenant gets 3 tabs with proper request status screen
+    // ✅ TENANT tabs
     return const [
       BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Search'),
       BottomNavigationBarItem(
-        icon: Icon(Icons.assignment), // Changed from favorite
-        label: 'My Requests', // Changed from 'Saved'
+        icon: Icon(Icons.assignment),
+        label: 'My Requests',
       ),
       BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
     ];
@@ -134,16 +143,13 @@ class _MainShellState extends State<MainShell> {
           return const SizedBox();
       }
     } else {
-      // ✅ FIXED: TENANT - 3 tabs with proper request status
+      // TENANT: 3 tabs
       switch (_currentIndex) {
         case 0:
-          // Search - shows all properties
           return PropertyListScreen(propertyController: propertyController);
         case 1:
-          // ✅ My Requests - shows tenant's request status
           return const TenantRequestStatusScreen();
         case 2:
-          // Profile
           return const ProfileScreen();
         default:
           return const SizedBox();
@@ -151,3 +157,25 @@ class _MainShellState extends State<MainShell> {
     }
   }
 }
+
+/* ✅ IMPROVEMENTS SUMMARY:
+ * 
+ * PropertyListScreen:
+ * - Removed hardcoded Color.fromARGB(255, 3, 56, 99)
+ * - Uses RentraEmptyState for empty list
+ * - Theme-colored loading indicator
+ * 
+ * MainShell:
+ * - Removed hardcoded Colors.blue and Color.fromARGB(255, 233, 76, 37)
+ * - Theme handles BottomNavigationBar styling automatically
+ * - Cleaner code
+ * 
+ * Your theme already defines these in app_theme.dart:
+ * bottomNavigationBarTheme: BottomNavigationBarThemeData(
+ *   backgroundColor: RentraColors.white,
+ *   selectedItemColor: RentraColors.darkTeal,
+ *   unselectedItemColor: RentraColors.lightText,
+ *   elevation: 8,
+ *   type: BottomNavigationBarType.fixed,
+ * )
+ */

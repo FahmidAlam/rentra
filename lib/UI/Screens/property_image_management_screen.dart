@@ -3,6 +3,8 @@ import 'package:rentra/Application/property_image_controller.dart';
 import 'package:rentra/Data/datasources/property_image_remote_datasource.dart';
 import 'package:rentra/core/models/property.dart';
 import 'package:rentra/core/models/property_image.dart';
+import 'package:rentra/core/theme/app_theme.dart';
+import 'package:rentra/UI/widgets/reusable_widgets.dart';
 
 class PropertyImageManagementScreen extends StatefulWidget {
   final Property property;
@@ -19,7 +21,7 @@ class PropertyImageManagementScreen extends StatefulWidget {
 
 class _PropertyImageManagementScreenState
     extends State<PropertyImageManagementScreen> {
-  late PropertyImageController _controller;
+  late final PropertyImageController _controller;
   bool _isReordering = false;
 
   @override
@@ -38,109 +40,27 @@ class _PropertyImageManagementScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Manage Property Images'),
-        centerTitle: true,
-        elevation: 0,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-      ),
+      appBar: AppBar(title: const Text('Manage Property Images')),
       body: ListenableBuilder(
         listenable: _controller,
-        builder: (context, _) {
+        builder: (_, __) {
           if (_controller.isLoading && _controller.images.isEmpty) {
             return const Center(child: CircularProgressIndicator());
           }
 
           return SingleChildScrollView(
+            padding: const EdgeInsets.only(bottom: 24),
             child: Column(
               children: [
-                // UPLOAD BUTTON
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      SizedBox(
-                        width: double.infinity,
-                        height: 50,
-                        child: ElevatedButton.icon(
-                          onPressed: _controller.isLoading
-                              ? null
-                              : () => _showUploadDialog(),
-                          icon: const Icon(Icons.cloud_upload),
-                          label: const Text('Upload New Image'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue.shade600,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      // REORDER MODE TOGGLE
-                      if (_controller.images.isNotEmpty)
-                        SizedBox(
-                          width: double.infinity,
-                          height: 50,
-                          child: OutlinedButton.icon(
-                            onPressed: _toggleReorderMode,
-                            icon: Icon(_isReordering
-                                ? Icons.check
-                                : Icons.drag_indicator),
-                            label: Text(
-                              _isReordering ? 'Done Reordering' : 'Reorder Images',
-                            ),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: Colors.blue.shade600,
-                              side: BorderSide(
-                                color: Colors.blue.shade600,
-                                width: 2,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
+                _buildTopActions(),
 
-                // NO IMAGES STATE
                 if (_controller.images.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.all(32),
-                    child: Column(
-                      children: [
-                        Icon(
-                          Icons.image_not_supported,
-                          size: 64,
-                          color: Colors.grey.shade300,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'No images yet',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey.shade600,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Upload images to showcase your property',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey.shade500,
-                          ),
-                        ),
-                      ],
-                    ),
+                  const RentraEmptyState(
+                    icon: Icons.image_not_supported,
+                    title: 'No images yet',
+                    subtitle: 'Upload images to showcase your property',
                   ),
-                // IMAGES LIST
+
                 if (_controller.images.isNotEmpty)
                   _isReordering
                       ? _buildReorderableList()
@@ -153,60 +73,79 @@ class _PropertyImageManagementScreenState
     );
   }
 
-  // NORMAL VIEW (View & Edit)
+  // ───────────────────────────────── TOP ACTIONS ─────────────────────────────
+
+  Widget _buildTopActions() {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          RentraPrimaryButton(
+            label: 'Upload New Image',
+            icon: Icons.cloud_upload,
+            isLoading: _controller.isLoading,
+            onPressed: _showUploadDialog,
+          ),
+          const VSpace(12),
+          if (_controller.images.isNotEmpty)
+            RentraSecondaryButton(
+              label: _isReordering ? 'Done Reordering' : 'Reorder Images',
+              icon:
+                  _isReordering ? Icons.check : Icons.drag_indicator_outlined,
+              color: RentraColors.darkTeal,
+              onPressed: _toggleReorderMode,
+            ),
+        ],
+      ),
+    );
+  }
+
+  // ───────────────────────────── NORMAL LIST VIEW ─────────────────────────────
+
   Widget _buildNormalList() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         children: List.generate(
           _controller.images.length,
-          (index) {
-            final image = _controller.images[index];
-            return _buildImageCard(image, index);
-          },
+          (i) => _buildImageCard(_controller.images[i], i),
         ),
       ),
     );
   }
 
-  // REORDERABLE VIEW (Drag & Drop)
+  // ─────────────────────────── REORDERABLE LIST VIEW ──────────────────────────
+
   Widget _buildReorderableList() {
     return ReorderableListView(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       onReorder: (oldIndex, newIndex) {
         setState(() {
-          if (newIndex > oldIndex) {
-            newIndex -= 1;
-          }
-          final image = _controller.images.removeAt(oldIndex);
-          _controller.images.insert(newIndex, image);
+          if (newIndex > oldIndex) newIndex--;
+          final item = _controller.images.removeAt(oldIndex);
+          _controller.images.insert(newIndex, item);
         });
       },
       children: List.generate(
         _controller.images.length,
-        (index) {
-          final image = _controller.images[index];
-          return _buildReorderableCard(image, index);
-        },
+        (i) => _buildReorderableCard(_controller.images[i], i),
       ),
     );
   }
 
-  // IMAGE CARD (Normal View)
+  // ───────────────────────────── IMAGE CARD (NORMAL) ──────────────────────────
+
   Widget _buildImageCard(PropertyImage image, int index) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image Preview
             ClipRRect(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(12),
               child: Image.network(
                 image.imageUrl,
                 height: 180,
@@ -214,93 +153,48 @@ class _PropertyImageManagementScreenState
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => Container(
                   height: 180,
-                  color: Colors.grey.shade200,
-                  child: const Center(
-                    child: Icon(Icons.broken_image),
-                  ),
+                  color: RentraColors.background,
+                  child: const Icon(Icons.broken_image),
                 ),
               ),
             ),
-
-            const SizedBox(height: 12),
-
-            // Position & Caption Section
+            const VSpace(12),
             Row(
               children: [
-                // Position badge
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade100,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
+                Chip(
+                  label: Text(
                     'Image ${index + 1}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.blue.shade700,
-                    ),
+                    style: const TextStyle(color: RentraColors.darkTeal),
                   ),
+                  backgroundColor:
+                      RentraColors.darkTeal.withOpacity(0.1),
                 ),
-                const SizedBox(width: 12),
-                // Caption
+                const HSpace(12),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Caption',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.grey.shade600,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        image.caption.isEmpty
-                            ? 'No caption'
-                            : image.caption,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
+                  child: Text(
+                    image.caption.isEmpty ? 'No caption' : image.caption,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
             ),
-
-            const SizedBox(height: 12),
-
-            // Action Buttons
+            const VSpace(12),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                // Edit Caption Button
                 TextButton.icon(
                   onPressed: () => _showEditCaptionDialog(image),
-                  icon: const Icon(Icons.edit, size: 18),
+                  icon: const Icon(Icons.edit),
                   label: const Text('Edit'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.blue.shade600,
-                  ),
                 ),
-                const SizedBox(width: 8),
-                // Delete Button
+                const HSpace(8),
                 TextButton.icon(
                   onPressed: () => _showDeleteConfirmation(image.id),
-                  icon: const Icon(Icons.delete, size: 18),
+                  icon: const Icon(Icons.delete),
                   label: const Text('Delete'),
                   style: TextButton.styleFrom(
-                    foregroundColor: Colors.red.shade600,
+                    foregroundColor: RentraColors.error,
                   ),
                 ),
               ],
@@ -311,13 +205,12 @@ class _PropertyImageManagementScreenState
     );
   }
 
-  // REORDERABLE CARD
+  // ───────────────────────────── REORDERABLE CARD ─────────────────────────────
+
   Widget _buildReorderableCard(PropertyImage image, int index) {
     return Card(
       key: ValueKey(image.id),
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       child: ListTile(
         leading: ReorderableDragStartListener(
           index: index,
@@ -329,115 +222,44 @@ class _PropertyImageManagementScreenState
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
-        trailing: SizedBox(
-          width: 100,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(6),
-            child: Image.network(
-              image.imageUrl,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
-                color: Colors.grey.shade200,
-                child: const Center(
-                  child: Icon(Icons.broken_image, size: 20),
-                ),
-              ),
-            ),
-          ),
-        ),
       ),
     );
   }
 
-  // UPLOAD DIALOG
+  // ────────────────────────────────── DIALOGS ─────────────────────────────────
+
   void _showUploadDialog() {
-    final urlController = TextEditingController();
-    final captionController = TextEditingController();
+    final url = TextEditingController();
+    final caption = TextEditingController();
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (_) => AlertDialog(
         title: const Text('Upload New Image'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: urlController,
-                decoration: const InputDecoration(
-                  labelText: 'Image URL',
-                  hintText: 'https://example.com/image.jpg',
-                  border: OutlineInputBorder(),
-                ),
-                maxLines: 2,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: captionController,
-                decoration: const InputDecoration(
-                  labelText: 'Caption (Optional)',
-                  hintText: 'e.g., Master Bedroom',
-                  border: OutlineInputBorder(),
-                ),
-                maxLength: 50,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Enter a descriptive caption for this image',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey.shade600,
-                ),
-              ),
-            ],
-          ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(controller: url, decoration: const InputDecoration(labelText: 'Image URL')),
+            const VSpace(12),
+            TextField(controller: caption, maxLength: 50, decoration: const InputDecoration(labelText: 'Caption')),
+          ],
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () async {
-              if (urlController.text.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Please enter image URL'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-                return;
-              }
+              if (url.text.isEmpty) return;
 
-              final success = await _controller.uploadImage(
-                imageUrl: urlController.text,
-                caption: captionController.text,
+              final ok = await _controller.uploadImage(
+                imageUrl: url.text,
+                caption: caption.text,
               );
 
               if (!mounted) return;
               Navigator.pop(context);
 
-              if (success) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('✅ Image uploaded successfully'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Error: ${_controller.errorMessage}',
-                    ),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-              }
+              _showSnack(ok, ok ? 'Image uploaded successfully' : _controller.errorMessage ?? 'Upload failed');
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue.shade600,
-            ),
             child: const Text('Upload'),
           ),
         ],
@@ -445,55 +267,22 @@ class _PropertyImageManagementScreenState
     );
   }
 
-  // EDIT CAPTION DIALOG
   void _showEditCaptionDialog(PropertyImage image) {
-    final controller = TextEditingController(text: image.caption);
+    final c = TextEditingController(text: image.caption);
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (_) => AlertDialog(
         title: const Text('Edit Caption'),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(
-            labelText: 'Caption',
-            hintText: 'e.g., Master Bedroom',
-            border: OutlineInputBorder(),
-          ),
-          maxLength: 50,
-        ),
+        content: TextField(controller: c, maxLength: 50),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () async {
-              final success = await _controller.updateCaption(
-                image.id,
-                controller.text,
-              );
-
+              final ok = await _controller.updateCaption(image.id, c.text);
               if (!mounted) return;
               Navigator.pop(context);
-
-              if (success) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('✅ Caption updated'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Error: ${_controller.errorMessage}',
-                    ),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-              }
+              _showSnack(ok, ok ? 'Caption updated' : _controller.errorMessage ?? 'Update failed');
             },
             child: const Text('Save'),
           ),
@@ -502,48 +291,22 @@ class _PropertyImageManagementScreenState
     );
   }
 
-  // DELETE CONFIRMATION
-  void _showDeleteConfirmation(int imageId) {
+  void _showDeleteConfirmation(int id) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (_) => AlertDialog(
         title: const Text('Delete Image?'),
-        content: const Text(
-          'This action cannot be undone. The image will be permanently deleted.',
-        ),
+        content: const Text('This action cannot be undone.'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
           ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: RentraColors.error),
             onPressed: () async {
-              final success = await _controller.deleteImage(imageId);
-
+              final ok = await _controller.deleteImage(id);
               if (!mounted) return;
               Navigator.pop(context);
-
-              if (success) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('✅ Image deleted'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Error: ${_controller.errorMessage}',
-                    ),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-              }
+              _showSnack(ok, ok ? 'Image deleted' : _controller.errorMessage ?? 'Delete failed');
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red.shade600,
-            ),
             child: const Text('Delete'),
           ),
         ],
@@ -551,37 +314,23 @@ class _PropertyImageManagementScreenState
     );
   }
 
-  // TOGGLE REORDER MODE
+  // ───────────────────────────────── HELPERS ──────────────────────────────────
+
   void _toggleReorderMode() async {
     if (_isReordering) {
-      // Save reordered images
-      final success = await _controller.reorderImages(
-        _controller.images,
-      );
-
+      final ok = await _controller.reorderImages(_controller.images);
       if (!mounted) return;
-
-      if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('✅ Images reordered successfully'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Error: ${_controller.errorMessage}',
-            ),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      _showSnack(ok, ok ? 'Images reordered successfully' : _controller.errorMessage ?? 'Reorder failed');
     }
+    setState(() => _isReordering = !_isReordering);
+  }
 
-    setState(() {
-      _isReordering = !_isReordering;
-    });
+  void _showSnack(bool success, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: success ? RentraColors.success : RentraColors.error,
+      ),
+    );
   }
 }

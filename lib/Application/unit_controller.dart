@@ -47,10 +47,6 @@ class UnitController extends ChangeNotifier {
     }
   }
 
-  // Future<void> toggleAvailability(Unit unit) async {
-  //   await repository.setAvailability(unit.id, !unit.isAvailable);
-  //   notifyListeners();
-  // }
   Future<void> toggleAvailability(Unit unit) async {
     try {
       // ✅ SAFETY CHECK: Prevent marking available if tenant is active

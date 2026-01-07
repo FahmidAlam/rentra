@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:rentra/Application/property_controller.dart';
 import 'package:rentra/UI/widgets/property_grid.dart';
+import 'package:rentra/UI/widgets/reusable_widgets.dart';
+import 'package:rentra/core/theme/app_theme.dart';
 
+/// ✅ REFACTORED PropertyListScreen
+/// 
+/// Changes made:
+/// - Removed hardcoded color in AppBar title
+/// - Uses RentraEmptyState for empty list
+/// - Theme colors for loading indicator
 class PropertyListScreen extends StatefulWidget {
   final PropertyController propertyController;
 
@@ -15,23 +23,16 @@ class PropertyListScreen extends StatefulWidget {
 }
 
 class _PropertyListScreenState extends State<PropertyListScreen> {
-
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: widget.propertyController,
       builder: (context, _) {
         final controller = widget.propertyController;
-
         return Scaffold(
+          // ✅ AppBar uses theme - removed hardcoded color
           appBar: AppBar(
-            title: const Text(
-              'Public Properties',
-              style: TextStyle(
-                color: Color.fromARGB(255, 3, 56, 99),
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            title: const Text('Public Properties'),
             centerTitle: true,
           ),
           body: _buildBody(controller),
@@ -41,12 +42,22 @@ class _PropertyListScreenState extends State<PropertyListScreen> {
   }
 
   Widget _buildBody(PropertyController controller) {
+    // ✅ Loading with theme color
     if (controller.isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(RentraColors.darkTeal),
+        ),
+      );
     }
 
+    // ✅ Empty state using RentraEmptyState
     if (controller.properties.isEmpty) {
-      return const Center(child: Text('No properties found'));
+      return RentraEmptyState(
+        icon: Icons.home_outlined,
+        title: 'No properties available',
+        subtitle: 'Check back later for new listings',
+      );
     }
 
     return PropertyGrid(properties: controller.properties);

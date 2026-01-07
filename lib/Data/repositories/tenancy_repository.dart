@@ -58,4 +58,15 @@ class TenancyRepository {
   Future<void> reject(int tenancyId) {
     return remote.rejectTenancy(tenancyId);
   }
+  /// Get tenancies for a specific tenant
+  Future<List<Map<String, dynamic>>> getTenanciesForTenant(
+    String tenantId,
+  ) async {
+    try {
+      return await remote.fetchTenanciesForTenant(tenantId);
+    } catch (e) {
+      print('❌ Repository error: $e');
+      rethrow;
+    }
+  }
 }

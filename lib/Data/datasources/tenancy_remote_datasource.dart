@@ -25,6 +25,7 @@ abstract class ITenancyRemoteDataSource {
   Future<List<Map<String, dynamic>>> fetchPendingForOwner(String ownerId);
   Future<void> approveTenancy(int tenancyId, int unitId);
   Future<void> rejectTenancy(int tenancyId);
+  Future<List<Map<String, dynamic>>> fetchTenanciesForTenant(String tenantId);
 }
 
 class TenancyRemoteDataSource implements ITenancyRemoteDataSource {
@@ -297,6 +298,47 @@ class TenancyRemoteDataSource implements ITenancyRemoteDataSource {
       print('✅ Tenancy request created');
     } catch (e) {
       print('❌ Error creating tenancy request: $e');
+      rethrow;
+    }
+  }
+  @override
+  Future<List<Map<String, dynamic>>> fetchTenanciesForTenant(
+    String tenantId,
+  ) async {
+    try {
+      print('🔄 Fetching tenancies for tenant: $tenantId');
+
+      final response = await SupabaseManager.supabase
+          .from('tenancies')
+          .select('''
+            id,
+            unit_id,
+            tenant_id,
+            status,
+            created_at,
+            units!inner(
+              id,
+              property_id,
+              rent,
+              unit_number,
+              properties!inner(
+                id,
+                title,
+                city,
+                image_url,
+                owner_id
+              )
+            )
+          ''')
+          .eq('tenant_id', tenantId)
+          .order('created_at', ascending: false);
+
+      final data = response as List<dynamic>;
+      print('✅ Loaded ${data.length} tenancies for tenant');
+
+      return data.cast<Map<String, dynamic>>();
+    } catch (e) {
+      print('❌ Error fetching tenant tenancies: $e');
       rethrow;
     }
   }

@@ -1,7 +1,17 @@
 import 'package:flutter/material.dart';
-// ui -> authcontroller -> supabase
 import 'package:rentra/Application/auth_controller.dart';
+import 'package:rentra/core/theme/app_theme.dart';
+import 'package:rentra/UI/widgets/reusable_widgets.dart';
 
+/// ✅ REFACTORED ProfileScreen
+/// 
+/// Changes made:
+/// - Removed all hardcoded colors
+/// - AppBar uses theme automatically
+/// - Uses RentraInfoRow instead of custom _buildInfoCard
+/// - Uses RentraDangerButton for logout
+/// - Uses VSpace for spacing
+/// - Removed custom color definitions
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -60,170 +70,112 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    //  FIXED: Show content even while loading
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: RentraColors.background,
+      // ✅ AppBar uses theme automatically - no custom styling needed
       appBar: AppBar(
-        title: const Text(
-          'Profile',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
+        title: const Text('Profile'),
         centerTitle: true,
-        backgroundColor: Colors.blue.shade600,
-        elevation: 0,
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  //  PROFILE HEADER
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Colors.blue.shade400,
-                          Colors.blue.shade600,
+          ? const Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(RentraColors.darkTeal),
+              ),
+            )
+          : SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // ✅ PROFILE HEADER with theme colors
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        gradient: RentraColors.primaryGradient,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.9),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.person,
+                              size: 48,
+                              color: RentraColors.darkTeal,
+                            ),
+                          ),
+                          const VSpace(12),
+                          Text(
+                            _email ?? 'N/A',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
                         ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
                       ),
-                      borderRadius: BorderRadius.circular(16),
                     ),
-                    child: Column(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.9),
-                            shape: BoxShape.circle,
+                    const VSpace(32),
+
+                    // ✅ PROFILE INFO using RentraInfoRow
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: RentraColors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: RentraColors.divider),
+                      ),
+                      child: Column(
+                        children: [
+                          RentraInfoRow(
+                            icon: Icons.email,
+                            label: 'Email',
+                            value: _email ?? 'N/A',
                           ),
-                          child: Icon(
-                            Icons.person,
-                            size: 48,
-                            color: Colors.blue.shade600,
+                          const VSpace(16),
+                          Divider(color: RentraColors.divider, height: 1),
+                          const VSpace(16),
+                          RentraInfoRow(
+                            icon: Icons.badge,
+                            label: 'Role',
+                            value: _role ?? 'Unknown',
                           ),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          _email ?? 'N/A',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
+                    const VSpace(48),
 
-                  const SizedBox(height: 32),
-
-                  //  PROFILE INFO CARDS
-                  _buildInfoCard(
-                    icon: Icons.email,
-                    label: 'Email',
-                    value: _email ?? 'N/A',
-                  ),
-                  const SizedBox(height: 16),
-                  _buildInfoCard(
-                    icon: Icons.badge,
-                    label: 'Role',
-                    value: _role ?? 'Unknown',
-                  ),
-
-                  const SizedBox(height: 48),
-
-                  //  LOGOUT BUTTON
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: ElevatedButton.icon(
+                    // ✅ LOGOUT BUTTON using RentraDangerButton
+                    RentraDangerButton(
+                      label: 'Logout',
+                      icon: Icons.logout,
                       onPressed: _logout,
-                      icon: const Icon(Icons.logout, size: 20),
-                      label: const Text(
-                        'Logout',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red.shade500,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
     );
   }
-
-  // HELPER WIDGET: Info Card
-  Widget _buildInfoCard({
-    required IconData icon,
-    required String label,
-    required String value,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.blue.shade50,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(
-              icon,
-              color: Colors.blue.shade600,
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
+
+/* ❌ REMOVED: Custom _buildInfoCard widget
+ * 
+ * The old implementation had:
+ * - Hardcoded Colors.grey, Colors.blue
+ * - SizedBox for spacing
+ * - Custom styling
+ * 
+ * Now we use RentraInfoRow which is:
+ * - Consistent across the app
+ * - Uses theme colors
+ * - Less code to maintain
+ */

@@ -1,5 +1,7 @@
 import 'package:rentra/Application/tenancy_controller.dart';
+import 'package:rentra/Data/datasources/profile_remote_datasource.dart';
 import 'package:rentra/Data/datasources/tenancy_remote_datasource.dart';
+import 'package:rentra/Data/repositories/profile_repository.dart' show ProfileRepository;
 import 'package:rentra/Data/repositories/tenancy_repository.dart';
 
 import '../Data/datasources/property_remote_datasource.dart';
@@ -16,5 +18,8 @@ class AppDependencies {
     TenancyRepository(
       TenancyRemoteDataSource(),
     ),
+  );
+  static final profileRepository = ProfileRepository(
+    ProfileRemoteDataSource(),
   );
 }

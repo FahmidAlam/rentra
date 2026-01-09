@@ -16,7 +16,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Rentra - NextGen Rental Management',
-      theme: RentraTheme.lightTheme, // ✅ APPLY THEME
+      theme: RentraTheme.lightTheme, 
       home: const AuthGate(),
       debugShowCheckedModeBanner: false,
       // Add routes for navigation

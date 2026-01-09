@@ -12,9 +12,6 @@ class TenancyController extends ChangeNotifier {
   List<Tenancy> pendingTenancies = [];
   List<dynamic> tenantTenancies = []; // For tenant viewing their own requests
 
-  /// =========================
-  /// TENANT: Request tenancy
-  /// =========================
   Future<bool> requestTenancy({
     required String tenantId,
     required int unitId,
@@ -44,9 +41,7 @@ class TenancyController extends ChangeNotifier {
     }
   }
 
-  /// =========================
-  /// OWNER: Load pending requests
-  /// =========================
+
   Future<void> loadPendingForOwner(String ownerId) async {
     isLoading = true;
     errorMessage = null;
@@ -58,7 +53,7 @@ class TenancyController extends ChangeNotifier {
       // Get raw data from repository
       final rawData = await repository.getPendingRequests(ownerId);
       
-      print('📊 TenancyController: Received ${rawData.length} raw tenancies');
+
       
       // Convert to Tenancy objects
       pendingTenancies = [];
@@ -67,17 +62,17 @@ class TenancyController extends ChangeNotifier {
           print('🔄 Converting JSON to Tenancy: id=${json['id']}, unit=${json['unit_id']}');
           final tenancy = Tenancy.fromJson(json);
           pendingTenancies.add(tenancy);
-          print('✅ Added tenancy: id=${tenancy.id}');
+
         } catch (e) {
-          print('❌ Failed to convert tenancy: $e');
+          print('Failed to convert tenancy: $e');
           // Continue with other tenancies even if one fails
         }
       }
 
-      print('✅ TenancyController: Successfully loaded ${pendingTenancies.length} tenancies');
+      print('TenancyController: Successfully loaded ${pendingTenancies.length} tenancies');
       errorMessage = null;
     } catch (e) {
-      print('❌ TenancyController: Error loading pending tenancies: $e');
+      print(' TenancyController: Error loading pending tenancies: $e');
       errorMessage = 'Failed to load requests: $e';
       pendingTenancies = [];
     } finally {
@@ -86,9 +81,7 @@ class TenancyController extends ChangeNotifier {
     }
   }
 
-  /// =========================
-  /// OWNER: Approve tenancy
-  /// =========================
+
   Future<void> approve(int tenancyId, int unitId) async {
     try {
       isLoading = true;
@@ -101,10 +94,9 @@ class TenancyController extends ChangeNotifier {
       // Remove from list
       pendingTenancies.removeWhere((t) => t.id == tenancyId);
 
-      print('✅ TenancyController: Tenancy $tenancyId approved');
       errorMessage = null;
     } catch (e) {
-      print('❌ TenancyController: Error approving tenancy: $e');
+
       errorMessage = 'Failed to approve: $e';
     } finally {
       isLoading = false;
@@ -112,9 +104,7 @@ class TenancyController extends ChangeNotifier {
     }
   }
 
-  /// =========================
-  /// OWNER: Reject tenancy
-  /// =========================
+
   Future<void> reject(int tenancyId) async {
     try {
       isLoading = true;
@@ -137,9 +127,7 @@ class TenancyController extends ChangeNotifier {
       notifyListeners();
     }
   }
-  /// =========================
-  /// TENANT: Load own tenancies
-  /// =========================
+
   Future<void> loadTenanciesForTenant(String tenantId) async {
     isLoading = true;
     errorMessage = null;
@@ -153,9 +141,9 @@ class TenancyController extends ChangeNotifier {
       tenantTenancies = data;
       errorMessage = null;
 
-      print('✅ TenancyController: Loaded ${tenantTenancies.length} tenancies');
+
     } catch (e) {
-      print('❌ TenancyController: Error loading tenancies: $e');
+
       errorMessage = 'Failed to load requests: $e';
       tenantTenancies = [];
     } finally {

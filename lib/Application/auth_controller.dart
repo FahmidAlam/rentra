@@ -6,16 +6,12 @@ import 'package:rentra/Data/repositories/profile_repository.dart';
 class AuthController {
   final SupabaseClient _client = SupabaseManager.supabase;
   
-  // ✅ Repository for advanced profile operations
+
   final ProfileRepository _profileRepository = ProfileRepository(
     ProfileRemoteDataSource(),
   );
 
   User? get currentUser => _client.auth.currentUser;
-
-  // ═══════════════════════════════════════════════════════════════
-  // ✅ EXISTING METHODS - UNCHANGED (Login/Register compatibility)
-  // ═══════════════════════════════════════════════════════════════
 
   /// Login user
   Future<AuthResponse> login(String email, String password) async {
@@ -39,8 +35,6 @@ class AuthController {
     required String role,
   }) async {
     try {
-      print('⏳ Saving profile for user: $userId');
-
       final existing = await _client
           .from('profiles')
           .select('id')
@@ -56,7 +50,6 @@ class AuthController {
           'phone': phone ?? '',
           'role': role,
         });
-        print('✅ New profile created');
       } else {
         // Update existing profile
         await _client.from('profiles').update({
@@ -65,10 +58,9 @@ class AuthController {
           'phone': phone ?? '',
           'role': role,
         }).eq('id', userId);
-        print('✅ Profile updated');
+
       }
     } catch (e) {
-      print('❌ Error saving profile: $e');
       throw Exception('Failed to save profile: $e');
     }
   }
@@ -127,23 +119,17 @@ class AuthController {
     await _client.auth.signOut();
   }
 
-  // ═══════════════════════════════════════════════════════════════
-  // ✅ NEW METHODS - For enhanced profile management
-  // ═══════════════════════════════════════════════════════════════
-
-  /// Fetch user profile as typed UserProfile object
-  /// Use this in ProfileScreen for type-safe access
+  /// type safe access
   Future<UserProfile?> getUserProfile(String userId) async {
     try {
       return await _profileRepository.getProfileById(userId);
     } catch (e) {
-      print('❌ Error fetching typed profile: $e');
       return null;
     }
   }
 
-  /// Update specific profile fields
-  /// Use this for profile editing functionality
+  //! Update specific profile fields
+
   Future<bool> updateUserProfile({
     required String userId,
     String? fullName,
@@ -156,18 +142,16 @@ class AuthController {
         phone: phone,
       );
     } catch (e) {
-      print('❌ Error updating user profile: $e');
       return false;
     }
   }
 
-  /// Check if profile is complete
+  //! Check if profile is complete
   Future<bool> isProfileComplete(String userId) async {
     try {
       final profile = await getUserProfile(userId);
       return profile?.isComplete ?? false;
     } catch (e) {
-      print('❌ Error checking profile completion: $e');
       return false;
     }
   }

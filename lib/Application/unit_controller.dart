@@ -49,7 +49,7 @@ class UnitController extends ChangeNotifier {
 
   Future<void> toggleAvailability(Unit unit) async {
     try {
-      // ✅ SAFETY CHECK: Prevent marking available if tenant is active
+      // SAFETY CHECK: Prevent marking available if tenant is active
       if (!unit.isAvailable) {
         // Trying to mark as available - check for active tenancy
         final activeTenancy = await SupabaseManager.supabase
@@ -70,7 +70,7 @@ class UnitController extends ChangeNotifier {
       await repository.setAvailability(unit.id, !unit.isAvailable);
       notifyListeners();
     } catch (e) {
-      print('❌ Error toggling availability: $e');
+      print('Error toggling availability: $e');
       rethrow;
     }
   }

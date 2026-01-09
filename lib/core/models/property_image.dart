@@ -3,14 +3,14 @@ class PropertyImage {
   final int propertyId;
   final String imageUrl;
   final int position;
-  final String caption; // ✅ NEW: Caption for image
+  final String caption; 
 
   PropertyImage({
     required this.id,
     required this.propertyId,
     required this.imageUrl,
     required this.position,
-    this.caption = '', // Default empty caption
+    this.caption = '', 
   });
 
   factory PropertyImage.fromJson(Map<String, dynamic> json) {

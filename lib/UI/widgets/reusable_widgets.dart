@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:rentra/core/theme/app_theme.dart';
 
-// ============================================================================
-// RESPONSIVE SIZED BOXES - For Spacing & Responsiveness
-// ============================================================================
+
+//! RESPONSIVE SIZED BOXES - For Spacing & Responsiveness
 
 /// Responsive horizontal spacing
 class HSpace extends StatelessWidget {
@@ -33,9 +32,9 @@ class VSpace extends StatelessWidget {
   }
 }
 
-// ============================================================================
-// CUSTOM BUTTONS - Reusable Button Components
-// ============================================================================
+
+//! CUSTOM BUTTONS - Reusable Button Components
+
 
 /// Primary Action Button with Gradient
 class RentraPrimaryButton extends StatelessWidget {
@@ -170,9 +169,8 @@ class RentraDangerButton extends StatelessWidget {
   }
 }
 
-// ============================================================================
 // CUSTOM CARDS - Reusable Card Components
-// ============================================================================
+
 
 /// Property Card
 class RentraPropertyCard extends StatelessWidget {

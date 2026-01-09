@@ -22,10 +22,10 @@ class PropertyImageController extends ChangeNotifier {
 
     try {
       images = await remoteDataSource.fetchImagesByProperty(propertyId);
-      print('✅ Loaded ${images.length} images');
+
     } catch (e) {
       errorMessage = 'Failed to load images: $e';
-      print('❌ Error loading images: $e');
+
     } finally {
       isLoading = false;
       notifyListeners();
@@ -62,7 +62,6 @@ class PropertyImageController extends ChangeNotifier {
       return true;
     } catch (e) {
       errorMessage = 'Failed to upload image: $e';
-      print('❌ Error uploading image: $e');
       notifyListeners();  // ✅ Notify UI of error
       return false;
     } finally {
@@ -90,12 +89,11 @@ class PropertyImageController extends ChangeNotifier {
       // Update positions in database
       await remoteDataSource.reorderImages(images);
 
-      print('✅ Image deleted and remaining images reordered');
       notifyListeners();
       return true;
     } catch (e) {
       errorMessage = 'Failed to delete image: $e';
-      print('❌ Error deleting image: $e');
+
       notifyListeners();
       return false;
     } finally {
@@ -119,7 +117,7 @@ class PropertyImageController extends ChangeNotifier {
       return true;
     } catch (e) {
       errorMessage = 'Failed to update caption: $e';
-      print('❌ Error updating caption: $e');
+
       notifyListeners();
       return false;
     }
@@ -136,12 +134,12 @@ class PropertyImageController extends ChangeNotifier {
 
       await remoteDataSource.reorderImages(images);
 
-      print('✅ Images reordered successfully');
+
       notifyListeners();
       return true;
     } catch (e) {
       errorMessage = 'Failed to reorder images: $e';
-      print('❌ Error reordering images: $e');
+
       notifyListeners();
       return false;
     } finally {

@@ -80,10 +80,10 @@ class _MainShellState extends State<MainShell> {
               child: const Icon(Icons.add),
             )
           : null,
-      // ✅ BottomNavigationBar uses theme - removed hardcoded colors
+      //  BottomNavigationBar uses theme - removed hardcoded colors
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
-        // ✅ REMOVED: selectedItemColor and unselectedItemColor
+        //  REMOVED: selectedItemColor and unselectedItemColor
         // Theme handles these automatically via bottomNavigationBarTheme
         onTap: (index) {
           setState(() {
@@ -95,7 +95,7 @@ class _MainShellState extends State<MainShell> {
     );
   }
 
-  // ✅ OPTIMIZED: 3 tabs for owner, 3 tabs for tenant
+  //  OPTIMIZED: 3 tabs for owner, 3 tabs for tenant
   List<BottomNavigationBarItem> _buildNavItems() {
     if (roleController.isOwner) {
       return const [
@@ -109,7 +109,7 @@ class _MainShellState extends State<MainShell> {
       ];
     }
 
-    // ✅ TENANT tabs
+    //  TENANT tabs
     return const [
       BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Search'),
       BottomNavigationBarItem(

@@ -3,7 +3,6 @@ import 'package:rentra/Application/property_controller.dart';
 import 'package:rentra/UI/widgets/property_card.dart';
 import 'package:rentra/UI/Screens/add_edit_property_screen.dart';
 import 'package:rentra/UI/Screens/property_image_management_screen.dart';
-
 class MyPropertiesScreen extends StatelessWidget {
   final PropertyController propertyController;
 
@@ -145,10 +144,6 @@ class MyPropertiesScreen extends StatelessWidget {
     );
   }
 }
-
-/// ✅ UI-only reusable widget
-/// ❌ No logic
-/// ❌ No navigation assumptions
 class _PropertyActionButton extends StatelessWidget {
   final IconData icon;
   final String tooltip;

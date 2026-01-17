@@ -5,9 +5,7 @@ class TenancyRepository {
   final ITenancyRemoteDataSource remote;
   TenancyRepository(this.remote);
 
-  // ------------ used in owner dashboard -------------
-
-  /// Tenant requests a tenancy
+  // Tenant requests a tenancy
   Future<void> requestTenancy({
     required String tenantId,
     required int unitId,
@@ -18,7 +16,7 @@ class TenancyRepository {
     );
   }
 
-  /// Get pending tenancies for owner
+  // Get pending tenancies for owner
   Future<List<Tenancy>> getPendingTenanciesForOwner(
     String ownerId,
   ) async {
@@ -26,14 +24,14 @@ class TenancyRepository {
     return data.map((json) => Tenancy.fromJson(json)).toList();
   }
 
-  /// Get pending requests for owner (returns raw data)
+  // Get pending requests for owner (returns raw data)
   Future<List<Map<String, dynamic>>> getPendingRequests(
     String ownerId,
   ) {
     return remote.fetchPendingForOwner(ownerId);
   }
 
-  /// Update tenancy status
+  // Update tenancy status
   Future<void> updateTenancyStatus({
     required int tenancyId,
     required String status,
@@ -49,23 +47,23 @@ class TenancyRepository {
     }
   }
 
-  /// Approve tenancy
+  // Approve tenancy
   Future<void> approve(int tenancyId, int unitId) {
     return remote.approveTenancy(tenancyId, unitId);
   }
 
-  /// Reject tenancy
+  // Reject tenancy
   Future<void> reject(int tenancyId) {
     return remote.rejectTenancy(tenancyId);
   }
-  /// Get tenancies for a specific tenant
+  // Get tenancies for a specific tenant
   Future<List<Map<String, dynamic>>> getTenanciesForTenant(
     String tenantId,
   ) async {
     try {
       return await remote.fetchTenanciesForTenant(tenantId);
     } catch (e) {
-      print('❌ Repository error: $e');
+      print('Repository error: $e');
       rethrow;
     }
   }

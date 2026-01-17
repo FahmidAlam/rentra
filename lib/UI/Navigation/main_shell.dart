@@ -25,12 +25,10 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
 
-  // Controllers
   late final PropertyController propertyController;
   final RoleController roleController = RoleController();
   final AuthController authController = AuthController();
 
-  // State
   bool _loadingRole = true;
 
   @override
@@ -80,11 +78,8 @@ class _MainShellState extends State<MainShell> {
               child: const Icon(Icons.add),
             )
           : null,
-      //  BottomNavigationBar uses theme - removed hardcoded colors
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
-        //  REMOVED: selectedItemColor and unselectedItemColor
-        // Theme handles these automatically via bottomNavigationBarTheme
         onTap: (index) {
           setState(() {
             _currentIndex = index;
@@ -94,8 +89,6 @@ class _MainShellState extends State<MainShell> {
       ),
     );
   }
-
-  //  OPTIMIZED: 3 tabs for owner, 3 tabs for tenant
   List<BottomNavigationBarItem> _buildNavItems() {
     if (roleController.isOwner) {
       return const [
@@ -108,8 +101,6 @@ class _MainShellState extends State<MainShell> {
         BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
       ];
     }
-
-    //  TENANT tabs
     return const [
       BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Search'),
       BottomNavigationBarItem(

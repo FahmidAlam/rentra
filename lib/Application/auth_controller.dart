@@ -13,7 +13,7 @@ class AuthController {
 
   User? get currentUser => _client.auth.currentUser;
 
-  /// Login user
+  // Login user
   Future<AuthResponse> login(String email, String password) async {
     return await _client.auth.signInWithPassword(
       email: email,
@@ -21,12 +21,12 @@ class AuthController {
     );
   }
 
-  /// Register user
+  // Register user
   Future<AuthResponse> register(String email, String password) async {
     return await _client.auth.signUp(email: email, password: password);
   }
 
-  /// Save user profile with all details - ENHANCED
+  // Save user profile with all details
   Future<void> saveUserProfile({
     required String userId,
     required String email,
@@ -86,7 +86,7 @@ class AuthController {
     }
   }
 
-  /// Fetch user role - KEPT UNCHANGED for RoleController
+  // Fetch user role - KEPT UNCHANGED for RoleController
   Future<String?> fetchUserRole(String userId) async {
     try {
       final res = await _client
@@ -101,7 +101,7 @@ class AuthController {
     }
   }
 
-  /// Fetch full user profile - KEPT UNCHANGED (returns raw Map)
+  // Fetch full user profile 
   Future<Map<String, dynamic>?> fetchUserProfile(String userId) async {
     try {
       return await _client
@@ -114,12 +114,12 @@ class AuthController {
     }
   }
 
-  /// Logout user
+  // Logout user
   Future<void> logout() async {
     await _client.auth.signOut();
   }
 
-  /// type safe access
+  // type safe access
   Future<UserProfile?> getUserProfile(String userId) async {
     try {
       return await _profileRepository.getProfileById(userId);

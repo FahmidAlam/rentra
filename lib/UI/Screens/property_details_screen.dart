@@ -10,13 +10,6 @@ import 'package:rentra/UI/Screens/full_screen_image_viewer.dart';
 import 'package:rentra/core/theme/app_theme.dart';
 import 'package:rentra/UI/widgets/reusable_widgets.dart';
 
-/// ✅ REFACTORED PropertyDetailsScreen
-/// 
-/// Changes made:
-/// - Uses RentraPrimaryButton and RentraSecondaryButton
-/// - Uses VSpace for spacing
-/// - Theme-colored SnackBars
-/// - Consistent styling with other screens
 class PropertyDetailsScreen extends StatefulWidget {
   final Property property;
 
@@ -61,8 +54,20 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // ! RESPONSIVE SIZING: Adapts to different screen sizes
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenHeight < 600;
+    final isTinyScreen = screenHeight < 500;
+
+    // Dynamic image carousel height
+    final carouselHeight = isTinyScreen ? 180.0 : (isSmallScreen ? 220.0 : 250.0);
+    // Dynamic padding
+    final contentPadding = isTinyScreen ? 12.0 : 16.0;
+    // Dynamic thumbnail size
+    final thumbnailSize = isTinyScreen ? 60.0 : 70.0;
+
     return Scaffold(
-      // ✅ AppBar uses theme
       appBar: AppBar(
         title: Text(widget.property.title),
       ),
@@ -70,98 +75,116 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // IMAGE CAROUSEL
-            _buildImageCarousel(),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // ✅ Title with theme text style
-                  Text(
-                    widget.property.title,
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  const VSpace(8),
-
-                  // ✅ City / Address with icon
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.location_on,
-                        size: 18,
-                        color: RentraColors.darkTeal,
+            // IMAGE CAROUSEL with responsive height
+            _buildImageCarousel(carouselHeight, thumbnailSize),
+            
+            // CONTENT with max-width constraint for tablets
+            Center(
+              child: Container(
+                constraints: BoxConstraints(
+                  maxWidth: screenWidth > 600 ? 600 : double.infinity,
+                ),
+                padding: EdgeInsets.all(contentPadding),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // TITLE with responsive text size
+                    Text(
+                      widget.property.title,
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontSize: isTinyScreen ? 20 : null,
                       ),
-                      const HSpace(4),
-                      Expanded(
-                        child: Text(
-                          '${widget.property.city}, ${widget.property.address}',
-                          style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    VSpace(isTinyScreen ? 6 : 8),
+
+                    // CITY / ADDRESS with icon
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.location_on,
+                          size: isTinyScreen ? 16 : 18,
+                          color: RentraColors.darkTeal,
                         ),
-                      ),
-                    ],
-                  ),
-                  const VSpace(16),
-
-                  // ✅ Description section
-                  Text(
-                    'Description',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const VSpace(8),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: RentraColors.background,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      widget.property.description,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ),
-                  const VSpace(24),
-
-                  // ✅ PRIMARY BUTTON - Contact Owner
-                  RentraPrimaryButton(
-                    label: 'Contact Owner',
-                    icon: Icons.phone,
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: const Text('Owner contact feature coming soon'),
-                          backgroundColor: RentraColors.darkTeal,
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                        const HSpace(4),
+                        Expanded(
+                          child: Text(
+                            '${widget.property.city}, ${widget.property.address}',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              fontSize: isTinyScreen ? 13 : null,
+                            ),
                           ),
                         ),
-                      );
-                    },
-                  ),
-                  const VSpace(12),
+                      ],
+                    ),
+                    VSpace(isTinyScreen ? 12 : 16),
 
-                  // ✅ SECONDARY BUTTON - View Units
-                  RentraSecondaryButton(
-                    label: 'View Available Units',
-                    icon: Icons.meeting_room,
-                    color: RentraColors.limeGreen,
-                    onPressed: () {
-                      final unitController = UnitController(
-                        UnitRepository(UnitRemoteDataSource()),
-                      );
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => UnitListScreen(
-                            property: widget.property,
-                            controller: unitController,
-                          ),
+                    // DESCRIPTION SECTION
+                    Text(
+                      'Description',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontSize: isTinyScreen ? 15 : null,
+                      ),
+                    ),
+                    const VSpace(8),
+                    Container(
+                      padding: EdgeInsets.all(isTinyScreen ? 10 : 12),
+                      decoration: BoxDecoration(
+                        color: RentraColors.background,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        widget.property.description,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontSize: isTinyScreen ? 13 : null,
                         ),
-                      );
-                    },
-                  ),
-                ],
+                      ),
+                    ),
+                    VSpace(isTinyScreen ? 20 : 24),
+
+                    // PRIMARY BUTTON - Contact Owner
+                    RentraPrimaryButton(
+                      label: 'Contact Owner',
+                      icon: Icons.phone,
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text('Owner contact feature coming soon'),
+                            backgroundColor: RentraColors.darkTeal,
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    const VSpace(12),
+
+                    // SECONDARY BUTTON - View Units
+                    RentraSecondaryButton(
+                      label: 'View Available Units',
+                      icon: Icons.meeting_room,
+                      color: RentraColors.limeGreen,
+                      onPressed: () {
+                        final unitController = UnitController(
+                          UnitRepository(UnitRemoteDataSource()),
+                        );
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => UnitListScreen(
+                              property: widget.property,
+                              controller: unitController,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    
+                    // Bottom spacing for safe area
+                    VSpace(isTinyScreen ? 16 : 24),
+                  ],
+                ),
               ),
             ),
           ],
@@ -170,12 +193,12 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     );
   }
 
-  // IMAGE CAROUSEL WIDGET (unchanged - already well implemented)
-  Widget _buildImageCarousel() {
+  // IMAGE CAROUSEL WIDGET with responsive parameters
+  Widget _buildImageCarousel(double carouselHeight, double thumbnailSize) {
     // Loading state
     if (_imagesLoading) {
       return Container(
-        height: 250,
+        height: carouselHeight,
         color: RentraColors.background,
         child: const Center(
           child: Column(
@@ -207,11 +230,11 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
         },
         child: Image.network(
           widget.property.imageUrl,
-          height: 250,
+          height: carouselHeight,
           width: double.infinity,
           fit: BoxFit.cover,
           errorBuilder: (_, __, ___) => Container(
-            height: 250,
+            height: carouselHeight,
             color: RentraColors.background,
             child: const Center(
               child: Icon(Icons.image_not_supported),
@@ -241,18 +264,18 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
             children: [
               Image.network(
                 _propertyImages[_currentImageIndex].imageUrl,
-                height: 250,
+                height: carouselHeight,
                 width: double.infinity,
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => Container(
-                  height: 250,
+                  height: carouselHeight,
                   color: RentraColors.background,
                   child: const Center(
                     child: Icon(Icons.broken_image),
                   ),
                 ),
               ),
-              // ✅ ZOOM HINT with theme colors
+              // ZOOM HINT with theme colors
               Positioned(
                 bottom: 12,
                 right: 12,
@@ -278,6 +301,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
             ],
           ),
         ),
+        
         // IMAGE INDICATOR DOTS
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 12),
@@ -300,10 +324,11 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
             ),
           ),
         ),
-        // THUMBNAIL GALLERY (Only if more than 1 image)
+        
+        // THUMBNAIL GALLERY (responsive size)
         if (_propertyImages.length > 1)
           Container(
-            height: 70,
+            height: thumbnailSize + 10,
             margin: const EdgeInsets.only(bottom: 16),
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
@@ -341,12 +366,12 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                       borderRadius: BorderRadius.circular(8),
                       child: Image.network(
                         _propertyImages[index].imageUrl,
-                        width: 70,
-                        height: 70,
+                        width: thumbnailSize,
+                        height: thumbnailSize,
                         fit: BoxFit.cover,
                         errorBuilder: (_, __, ___) => Container(
-                          width: 70,
-                          height: 70,
+                          width: thumbnailSize,
+                          height: thumbnailSize,
                           color: RentraColors.background,
                           child: const Center(
                             child: Icon(Icons.broken_image, size: 20),
@@ -363,20 +388,3 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     );
   }
 }
-
-/* ✅ IMPROVEMENTS SUMMARY:
- * 
- * Before:
- * - Generic ElevatedButton.icon widgets
- * - SizedBox for spacing
- * - No theme integration in buttons
- * - Inconsistent with other screens
- * 
- * After:
- * - RentraPrimaryButton for main action (Contact Owner)
- * - RentraSecondaryButton for secondary action (View Units)
- * - VSpace/HSpace for spacing
- * - Theme colors in SnackBars and indicators
- * - Consistent with LoginScreen, RegisterScreen, etc.
- * - Better visual hierarchy
- */

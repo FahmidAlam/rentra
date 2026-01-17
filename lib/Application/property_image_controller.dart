@@ -13,7 +13,7 @@ class PropertyImageController extends ChangeNotifier {
   String? errorMessage;
   int? propertyId;
 
-  /// Load images for a property
+  // Load images for a property
   Future<void> loadImages(int propertyId) async {
     this.propertyId = propertyId;
     isLoading = true;
@@ -22,17 +22,15 @@ class PropertyImageController extends ChangeNotifier {
 
     try {
       images = await remoteDataSource.fetchImagesByProperty(propertyId);
-
     } catch (e) {
       errorMessage = 'Failed to load images: $e';
-
     } finally {
       isLoading = false;
       notifyListeners();
     }
   }
 
-  /// Upload a new image - FIXED: Proper state management
+  // Upload a new image
   Future<bool> uploadImage({
     required String imageUrl,
     required String caption,
@@ -55,22 +53,21 @@ class PropertyImageController extends ChangeNotifier {
         position: newPosition,
       );
 
-      images.add(image);  // ✅ Add to list
-      print('✅ Image uploaded successfully: ${image.id}');
+      images.add(image);
       errorMessage = null;
-      notifyListeners();  // ✅ Notify UI to refresh
+      notifyListeners();
       return true;
     } catch (e) {
       errorMessage = 'Failed to upload image: $e';
-      notifyListeners();  // ✅ Notify UI of error
+      notifyListeners();
       return false;
     } finally {
       isLoading = false;
-      notifyListeners();  // ✅ Always notify
+      notifyListeners();
     }
   }
 
-  /// Delete an image
+  // Delete an image
   Future<bool> deleteImage(int imageId) async {
     isLoading = true;
     errorMessage = null;
@@ -93,7 +90,6 @@ class PropertyImageController extends ChangeNotifier {
       return true;
     } catch (e) {
       errorMessage = 'Failed to delete image: $e';
-
       notifyListeners();
       return false;
     } finally {
@@ -102,7 +98,7 @@ class PropertyImageController extends ChangeNotifier {
     }
   }
 
-  /// Update caption for an image
+  // Update caption for an image
   Future<bool> updateCaption(int imageId, String newCaption) async {
     try {
       await remoteDataSource.updateImageCaption(imageId, newCaption);
@@ -112,18 +108,16 @@ class PropertyImageController extends ChangeNotifier {
         images[index] = images[index].copyWith(caption: newCaption);
       }
 
-      print('✅ Caption updated');
       notifyListeners();
       return true;
     } catch (e) {
       errorMessage = 'Failed to update caption: $e';
-
       notifyListeners();
       return false;
     }
   }
 
-  /// Reorder images (after drag and drop)
+  // Reorder images (after drag and drop)
   Future<bool> reorderImages(List<PropertyImage> reorderedImages) async {
     isLoading = true;
     errorMessage = null;
@@ -131,15 +125,12 @@ class PropertyImageController extends ChangeNotifier {
 
     try {
       images = reorderedImages;
-
       await remoteDataSource.reorderImages(images);
-
 
       notifyListeners();
       return true;
     } catch (e) {
       errorMessage = 'Failed to reorder images: $e';
-
       notifyListeners();
       return false;
     } finally {

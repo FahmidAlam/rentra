@@ -4,7 +4,7 @@ import 'package:rentra/core/theme/app_theme.dart';
 
 //! RESPONSIVE SIZED BOXES - For Spacing & Responsiveness
 
-/// Responsive horizontal spacing
+// Responsive horizontal spacing
 class HSpace extends StatelessWidget {
   final double value; // Base value (scales on responsive devices)
   
@@ -18,7 +18,7 @@ class HSpace extends StatelessWidget {
   }
 }
 
-/// Responsive vertical spacing
+// Responsive vertical spacing
 class VSpace extends StatelessWidget {
   final double value; // Base value (scales on responsive devices)
   
@@ -36,7 +36,7 @@ class VSpace extends StatelessWidget {
 //! CUSTOM BUTTONS - Reusable Button Components
 
 
-/// Primary Action Button with Gradient
+// Primary Action Button with Gradient
 class RentraPrimaryButton extends StatelessWidget {
   final String label;
   final VoidCallback onPressed;
@@ -90,7 +90,7 @@ class RentraPrimaryButton extends StatelessWidget {
   }
 }
 
-/// Secondary Action Button
+// Secondary Action Button
 class RentraSecondaryButton extends StatelessWidget {
   final String label;
   final VoidCallback onPressed;
@@ -132,7 +132,7 @@ class RentraSecondaryButton extends StatelessWidget {
   }
 }
 
-/// Danger Action Button (Red)
+// Danger Action Button (Red)
 class RentraDangerButton extends StatelessWidget {
   final String label;
   final VoidCallback onPressed;
@@ -172,7 +172,7 @@ class RentraDangerButton extends StatelessWidget {
 // CUSTOM CARDS - Reusable Card Components
 
 
-/// Property Card
+// Property Card
 class RentraPropertyCard extends StatelessWidget {
   final String imageUrl;
   final String title;
@@ -298,7 +298,7 @@ class RentraPropertyCard extends StatelessWidget {
   }
 }
 
-/// Status Badge
+// Status Badge
 class RentraStatusBadge extends StatelessWidget {
   final String label;
   final String status; // pending, approved, rejected
@@ -354,7 +354,7 @@ class RentraStatusBadge extends StatelessWidget {
   }
 }
 
-/// Info Row Widget
+// Info Row Widget
 class RentraInfoRow extends StatelessWidget {
   final String label;
   final String value;
@@ -401,7 +401,7 @@ class RentraInfoRow extends StatelessWidget {
   }
 }
 
-/// Loading Skeleton
+// Loading Skeleton
 class RentraSkeletonLoader extends StatelessWidget {
   final double height;
   final double width;
@@ -431,7 +431,7 @@ class RentraSkeletonLoader extends StatelessWidget {
   }
 }
 
-/// Empty State Widget
+// Empty State Widget
 class RentraEmptyState extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -485,6 +485,56 @@ class RentraEmptyState extends StatelessWidget {
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+class PropertyActionButton extends StatelessWidget {
+  final IconData icon;
+  final String tooltip;
+  final Color backgroundColor;
+  final Color foregroundColor;
+  final VoidCallback onTap;
+
+  const PropertyActionButton({
+    required this.icon,
+    required this.tooltip,
+    required this.backgroundColor,
+    required this.foregroundColor,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.15),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Icon(
+              icon,
+              color: foregroundColor,
+              size: 18,
+            ),
+          ),
+        ),
       ),
     );
   }

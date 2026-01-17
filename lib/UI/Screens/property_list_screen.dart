@@ -4,12 +4,6 @@ import 'package:rentra/UI/widgets/property_grid.dart';
 import 'package:rentra/UI/widgets/reusable_widgets.dart';
 import 'package:rentra/core/theme/app_theme.dart';
 
-/// ✅ REFACTORED PropertyListScreen
-/// 
-/// Changes made:
-/// - Removed hardcoded color in AppBar title
-/// - Uses RentraEmptyState for empty list
-/// - Theme colors for loading indicator
 class PropertyListScreen extends StatefulWidget {
   final PropertyController propertyController;
 
@@ -30,7 +24,6 @@ class _PropertyListScreenState extends State<PropertyListScreen> {
       builder: (context, _) {
         final controller = widget.propertyController;
         return Scaffold(
-          // ✅ AppBar uses theme - removed hardcoded color
           appBar: AppBar(
             title: const Text('Public Properties'),
             centerTitle: true,
@@ -42,7 +35,7 @@ class _PropertyListScreenState extends State<PropertyListScreen> {
   }
 
   Widget _buildBody(PropertyController controller) {
-    // ✅ Loading with theme color
+    // Loading with theme color
     if (controller.isLoading) {
       return const Center(
         child: CircularProgressIndicator(
@@ -51,7 +44,7 @@ class _PropertyListScreenState extends State<PropertyListScreen> {
       );
     }
 
-    // ✅ Empty state using RentraEmptyState
+    // Empty state using RentraEmptyState
     if (controller.properties.isEmpty) {
       return RentraEmptyState(
         icon: Icons.home_outlined,

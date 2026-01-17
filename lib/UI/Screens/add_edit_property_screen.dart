@@ -4,15 +4,6 @@ import 'package:rentra/core/models/property.dart';
 import 'package:rentra/core/theme/app_theme.dart';
 import 'package:rentra/UI/widgets/reusable_widgets.dart';
 
-/// ✅ REFACTORED AddEditPropertyScreen
-/// 
-/// Changes made:
-/// - Added proper labels with theme text styles
-/// - Added icons to all text fields with theme colors
-/// - Uses VSpace for spacing instead of SizedBox
-/// - Uses RentraPrimaryButton with loading state
-/// - Added helpful hint text
-/// - Proper error handling with theme colors
 class AddEditPropertyScreen extends StatefulWidget {
   final PropertyController controller;
   final Property? property; // null = ADD, not null = EDIT
@@ -50,7 +41,7 @@ class _AddEditPropertyScreenState extends State<AddEditPropertyScreen> {
   }
 
   Future<void> _submit() async {
-    // ✅ Validation
+    // Validation
     if (_titleCtrl.text.trim().isEmpty ||
         _addressCtrl.text.trim().isEmpty ||
         _cityCtrl.text.trim().isEmpty ||
@@ -133,7 +124,6 @@ class _AddEditPropertyScreenState extends State<AddEditPropertyScreen> {
   Widget build(BuildContext context) {
     final isEdit = widget.property != null;
     return Scaffold(
-      // ✅ AppBar uses theme
       appBar: AppBar(
         title: Text(isEdit ? 'Edit Property' : 'Add Property'),
       ),
@@ -142,7 +132,7 @@ class _AddEditPropertyScreenState extends State<AddEditPropertyScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ✅ PROPERTY TITLE
+            // PROPERTY TITLE
             Text(
               'Property Title',
               style: Theme.of(context).textTheme.titleMedium,
@@ -159,7 +149,7 @@ class _AddEditPropertyScreenState extends State<AddEditPropertyScreen> {
             ),
             const VSpace(16),
 
-            // ✅ ADDRESS
+            // ADDRESS
             Text(
               'Address',
               style: Theme.of(context).textTheme.titleMedium,
@@ -176,7 +166,7 @@ class _AddEditPropertyScreenState extends State<AddEditPropertyScreen> {
             ),
             const VSpace(16),
 
-            // ✅ CITY
+            // CITY
             Text(
               'City',
               style: Theme.of(context).textTheme.titleMedium,
@@ -193,7 +183,7 @@ class _AddEditPropertyScreenState extends State<AddEditPropertyScreen> {
             ),
             const VSpace(16),
 
-            // ✅ DESCRIPTION
+            // DESCRIPTION
             Text(
               'Description',
               style: Theme.of(context).textTheme.titleMedium,
@@ -212,7 +202,7 @@ class _AddEditPropertyScreenState extends State<AddEditPropertyScreen> {
             ),
             const VSpace(16),
 
-            // ✅ COVER IMAGE URL
+            // COVER IMAGE URL
             Text(
               'Cover Image URL',
               style: Theme.of(context).textTheme.titleMedium,
@@ -237,7 +227,7 @@ class _AddEditPropertyScreenState extends State<AddEditPropertyScreen> {
             ),
             const VSpace(24),
 
-            // ✅ SUBMIT BUTTON using RentraPrimaryButton
+            // SUBMIT BUTTON using RentraPrimaryButton
             RentraPrimaryButton(
               label: isEdit ? 'Update Property' : 'Create Property',
               icon: isEdit ? Icons.update : Icons.add_home,
@@ -250,23 +240,3 @@ class _AddEditPropertyScreenState extends State<AddEditPropertyScreen> {
     );
   }
 }
-
-/* ✅ IMPROVEMENTS SUMMARY:
- * 
- * Before:
- * - Generic TextFields with no context
- * - No validation feedback
- * - SizedBox for spacing
- * - Generic ElevatedButton
- * - Poor loading state handling
- * 
- * After:
- * - Labeled fields with theme text styles
- * - Helpful hint text for each field
- * - Icons with theme colors
- * - VSpace for consistent spacing
- * - RentraPrimaryButton with proper loading state
- * - Validation with clear error messages
- * - Success/error SnackBars with theme colors
- * - Disabled fields during loading
- */

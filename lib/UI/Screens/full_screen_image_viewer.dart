@@ -47,7 +47,7 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
       ),
       body: Stack(
         children: [
-          // 📄 PAGE VIEW FOR SWIPING
+          // PAGE VIEW FOR SWIPING
           PageView.builder(
             controller: _pageController,
             onPageChanged: (index) {
@@ -106,7 +106,7 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
             },
           ),
 
-          // 📊 BOTTOM INDICATOR AND CONTROLS
+          // BOTTOM INDICATOR AND CONTROLS
           Positioned(
             bottom: 0,
             left: 0,

@@ -2,9 +2,9 @@ class UserProfile {
   final String id;
   final String email;
   final String role;
-  final String? fullName;  // nullable - can be empty
-  final String? phone;     // nullable - can be empty
-  final DateTime? createdAt; // nullable
+  final String? fullName;  
+  final String? phone;     // 
+  final DateTime? createdAt; 
   
   UserProfile({
     required this.id,

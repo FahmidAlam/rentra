@@ -2,17 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:rentra/Application/unit_controller.dart';
 import 'package:rentra/core/theme/app_theme.dart';
 import 'package:rentra/UI/widgets/reusable_widgets.dart';
-
-/// ✅ REFACTORED AddUnitScreen
-/// 
-/// Changes made:
-/// - Added proper labels with theme text styles
-/// - Added icons to text fields with theme colors
-/// - Uses VSpace for spacing
-/// - Uses RentraPrimaryButton with loading state
-/// - Added helpful hint text
-/// - Proper validation and error handling
-/// - Theme-colored SnackBars
 class AddUnitScreen extends StatefulWidget {
   final int propertyId;
   final UnitController controller;
@@ -33,7 +22,7 @@ class _AddUnitScreenState extends State<AddUnitScreen> {
   bool _loading = false;
 
   Future<void> _submit() async {
-    // ✅ VALIDATION
+    // VALIDATION
     if (_unitNumberCtrl.text.trim().isEmpty) {
       _showErrorSnackBar('Please enter unit number');
       return;
@@ -101,7 +90,6 @@ class _AddUnitScreenState extends State<AddUnitScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // ✅ AppBar uses theme
       appBar: AppBar(
         title: const Text('Add Unit'),
       ),
@@ -110,7 +98,7 @@ class _AddUnitScreenState extends State<AddUnitScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ✅ INFO CARD explaining what a unit is
+            // INFO CARD explaining what a unit is
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -141,7 +129,7 @@ class _AddUnitScreenState extends State<AddUnitScreen> {
             ),
             const VSpace(24),
 
-            // ✅ UNIT NUMBER
+            // UNIT NUMBER
             Text(
               'Unit Number',
               style: Theme.of(context).textTheme.titleMedium,
@@ -157,8 +145,6 @@ class _AddUnitScreenState extends State<AddUnitScreen> {
               ),
             ),
             const VSpace(16),
-
-            // ✅ MONTHLY RENT
             Text(
               'Monthly Rent (৳)',
               style: Theme.of(context).textTheme.titleMedium,
@@ -182,8 +168,6 @@ class _AddUnitScreenState extends State<AddUnitScreen> {
                   ),
             ),
             const VSpace(32),
-
-            // ✅ SUBMIT BUTTON using RentraPrimaryButton
             RentraPrimaryButton(
               label: 'Add Unit',
               icon: Icons.add,
@@ -196,25 +180,3 @@ class _AddUnitScreenState extends State<AddUnitScreen> {
     );
   }
 }
-
-/* ✅ IMPROVEMENTS SUMMARY:
- * 
- * Before:
- * - Basic TextField with no context
- * - Generic button
- * - SizedBox spacing
- * - Minimal validation
- * - No user guidance
- * 
- * After:
- * - Labeled fields with theme text styles
- * - Helpful hint text and descriptions
- * - Info card explaining what a unit is
- * - Icons with theme colors
- * - VSpace/HSpace for consistent spacing
- * - RentraPrimaryButton with loading state
- * - Proper validation with clear messages
- * - Theme-colored SnackBars
- * - Fields disabled during loading
- * - Better UX overall
- */

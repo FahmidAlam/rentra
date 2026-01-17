@@ -16,7 +16,7 @@ class PropertyController extends ChangeNotifier {
   bool get isLoading => _isLoading;
   List<Property> get properties => _properties;
 
-  /// Owner-specific properties
+  // Owner-specific properties
   List<Property> get myProperties {
     final user = SupabaseManager.supabase.auth.currentUser;
     if (user == null) return [];
@@ -40,7 +40,7 @@ class PropertyController extends ChangeNotifier {
     }
   }
 
-  /// Single property (details screen)
+  // Single property (details screen)
   Future<Property?> getPropertyById(int id) {
     return repository.getPropertyById(id);
   }

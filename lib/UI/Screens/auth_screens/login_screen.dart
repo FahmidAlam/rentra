@@ -60,36 +60,43 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // ! RESPONSIVE SIZING: Adapts to different screen sizes
-    final isSmallScreen = MediaQuery.of(context).size.height < 600;
-    //?    final screenHeight = MediaQuery.of(context).size.height;
+    // ! RESPONSIVE SIZING: Multiple breakpoints for better adaptation
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+    
+    final isVerySmallScreen = screenHeight < 600;
+    final isTinyScreen = screenHeight < 500;
+    
+    // Dynamic sizing based on screen
+    final logoSize = isTinyScreen ? 80.0 : (isVerySmallScreen ? 100.0 : 120.0);
+    final logoIconSize = isTinyScreen ? 40.0 : (isVerySmallScreen ? 50.0 : 60.0);
+    final topSpacing = isTinyScreen ? 16.0 : (isVerySmallScreen ? 20.0 : 40.0);
+    final middleSpacing = isTinyScreen ? 20.0 : (isVerySmallScreen ? 30.0 : 50.0);
+    final bottomSpacing = isTinyScreen ? 16.0 : (isVerySmallScreen ? 20.0 : 40.0);
 
     return Scaffold(
       body: Container(
-        // ! GRADIENT BACKGROUND using Rentra colors
         decoration: BoxDecoration(gradient: RentraColors.primaryGradient),
         child: SafeArea(
-          child: SingleChildScrollView(
-            // ! SCROLLABLE VIEW: For devices with keyboard
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minHeight: MediaQuery.of(context).size.height -
-                    MediaQuery.of(context).padding.top -
-                    MediaQuery.of(context).padding.bottom,
-              ),
-              child: IntrinsicHeight(
+          child: Center(
+            child: SingleChildScrollView(
+              physics: const ClampingScrollPhysics(),
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: isTinyScreen ? 16 : 24,
+                ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // RESPONSIVE SPACING using VSpace
-                    VSpace(isSmallScreen ? 20 : 40),
+                    VSpace(topSpacing),
 
-                    // LOGO SECTION
+                    // LOGO SECTION with responsive sizing
                     Column(
                       children: [
                         Container(
-                          width: 120,
-                          height: 120,
+                          width: logoSize,
+                          height: logoSize,
                           decoration: BoxDecoration(
                             color: Colors.white.withOpacity(0.95),
                             shape: BoxShape.circle,
@@ -104,12 +111,12 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: Center(
                             child: Icon(
                               Icons.home,
-                              size: 60,
+                              size: logoIconSize,
                               color: RentraColors.darkTeal,
                             ),
                           ),
                         ),
-                        const VSpace(16),
+                        VSpace(isTinyScreen ? 12 : 16),
                         Text(
                           'Rentra',
                           style: Theme.of(context)
@@ -118,24 +125,28 @@ class _LoginScreenState extends State<LoginScreen> {
                               .copyWith(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
+                                fontSize: isTinyScreen ? 28 : null,
                               ),
                         ),
-                        const VSpace(4),
+                        VSpace(isTinyScreen ? 4 : 8),
                         Text(
                           'NextGen Rental Management',
                           style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                                 color: Colors.white.withOpacity(0.8),
+                                fontSize: isTinyScreen ? 12 : null,
                               ),
                         ),
                       ],
                     ),
 
-                    VSpace(isSmallScreen ? 30 : 50),
+                    VSpace(middleSpacing),
 
-                    // MAIN CONTENT in responsive container
+                    // MAIN CONTENT with max-width constraint
                     Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 24),
-                      padding: const EdgeInsets.all(24),
+                      constraints: BoxConstraints(
+                        maxWidth: screenWidth > 600 ? 500 : double.infinity,
+                      ),
+                      padding: EdgeInsets.all(isTinyScreen ? 20 : 24),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(24),
@@ -149,17 +160,20 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
                             'Welcome Back',
-                            style: Theme.of(context).textTheme.headlineSmall,
+                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                              fontSize: isTinyScreen ? 20 : null,
+                            ),
                           ),
-                          const VSpace(8),
+                          VSpace(isTinyScreen ? 6 : 8),
                           Text(
                             'Sign in to manage your properties',
                             style: Theme.of(context).textTheme.bodyMedium,
                           ),
-                          const VSpace(24),
+                          VSpace(isTinyScreen ? 20 : 24),
 
                           // EMAIL FIELD
                           Text(
@@ -206,9 +220,9 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                           ),
-                          const VSpace(24),
+                          VSpace(isTinyScreen ? 20 : 24),
 
-                          // ✅ PRIMARY BUTTON using reusable widget
+                          // PRIMARY BUTTON
                           RentraPrimaryButton(
                             label: 'Sign In',
                             icon: Icons.login,
@@ -234,9 +248,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                           color: RentraColors.darkTeal,
                                           fontWeight: FontWeight.w600,
                                         ),
-                                    recognizer:
-                                        TapGestureRecognizer()
-                                          ..onTap = () => Navigator.push(
+                                    recognizer: TapGestureRecognizer()
+                                      ..onTap = () => Navigator.push(
                                             context,
                                             MaterialPageRoute(
                                               builder: (_) =>
@@ -252,7 +265,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
 
-                    VSpace(isSmallScreen ? 20 : 40),
+                    VSpace(bottomSpacing),
                   ],
                 ),
               ),

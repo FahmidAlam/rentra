@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
-/// RENTRA Color Scheme - Matches App Icon
 class RentraColors {
-  // Primary Colors (from logo)
+  // Primary Colors
   static const Color darkTeal = Color(0xFF006B7A); // Dark teal from house
   static const Color lightTeal = Color(0xFF00A8BF); // Light teal from house
   static const Color limeGreen = Color(0xFF7CB342); // Green from arrow

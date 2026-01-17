@@ -13,8 +13,7 @@ class AuthGate extends StatelessWidget {
       builder: (context, snapshot) {
         final session =
             Supabase.instance.client.auth.currentSession;
-
-        // Optional loading state (good for demo & viva)
+            
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),

@@ -5,13 +5,6 @@ import 'package:rentra/core/supabase_client.dart';
 import 'package:rentra/core/theme/app_theme.dart';
 import 'package:rentra/UI/widgets/reusable_widgets.dart';
 
-/// ✅ PRESENTATION LAYER ONLY
-/// Responsibilities:
-/// - Display UI
-/// - Handle user interactions
-/// - Listen to controller state changes
-/// - NO direct database access
-/// - NO business logic
 class TenantRequestStatusScreen extends StatefulWidget {
   const TenantRequestStatusScreen({super.key});
 
@@ -29,17 +22,17 @@ class _TenantRequestStatusScreenState extends State<TenantRequestStatusScreen> {
     super.initState();
     _controller = AppDependencies.tenancyController;
 
-    // ✅ Check auth state
+    // Check auth state
     final currentUser = SupabaseManager.supabase.auth.currentUser;
     if (currentUser == null) {
       setState(() => _noUser = true);
       return;
     }
 
-    // ✅ Delegate to controller - NO data fetching here
+    // Delegate to controller - NO data fetching here
     _loadData(currentUser.id);
 
-    // ✅ Listen to controller state changes
+    //  Listen to controller state changes
     _controller.addListener(_onControllerUpdate);
   }
 
@@ -49,12 +42,12 @@ class _TenantRequestStatusScreenState extends State<TenantRequestStatusScreen> {
     super.dispose();
   }
 
-  /// ✅ Simple controller method call - no business logic
+  //  Simple controller method call - no business logic
   Future<void> _loadData(String tenantId) async {
     await _controller.loadTenanciesForTenant(tenantId);
   }
 
-  /// ✅ Handle controller state changes
+  //  Handle controller state changes
   void _onControllerUpdate() {
     if (!mounted) return;
 
@@ -78,7 +71,7 @@ class _TenantRequestStatusScreenState extends State<TenantRequestStatusScreen> {
     setState(() {});
   }
 
-  /// ✅ Refresh handler
+  //  Refresh handler
   Future<void> _handleRefresh() async {
     final user = SupabaseManager.supabase.auth.currentUser;
     if (user != null) {
@@ -88,28 +81,24 @@ class _TenantRequestStatusScreenState extends State<TenantRequestStatusScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // 🔄 LOADING STATE
+    // LOADING STATE
     if (_controller.isLoading && _controller.tenantTenancies.isEmpty) {
       return _buildLoadingState();
     }
 
-    // ❌ NOT SIGNED IN
+    // NOT SIGNED IN
     if (_noUser) {
       return _buildNoUserState();
     }
 
-    // 📭 NO REQUESTS
+    // NO REQUESTS
     if (_controller.tenantTenancies.isEmpty) {
       return _buildEmptyState();
     }
 
-    // ✅ REQUESTS LIST
+    // REQUESTS LIST
     return _buildRequestsList();
   }
-
-  // ==========================================
-  // UI STATE BUILDERS
-  // ==========================================
 
   Widget _buildLoadingState() {
     return Scaffold(
@@ -184,9 +173,6 @@ class _TenantRequestStatusScreenState extends State<TenantRequestStatusScreen> {
       appBar: AppBar(
         title: const Text('My Requests'),
         centerTitle: true,
-        elevation: 0,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -208,10 +194,6 @@ class _TenantRequestStatusScreenState extends State<TenantRequestStatusScreen> {
       ),
     );
   }
-
-  // ==========================================
-  // REQUEST CARD - PURE UI
-  // ==========================================
 
   Widget _buildRequestCard(dynamic tenancy) {
     final status = tenancy['status'] as String;
@@ -239,7 +221,7 @@ class _TenantRequestStatusScreenState extends State<TenantRequestStatusScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 🏠 PROPERTY IMAGE
+              // PROPERTY IMAGE
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: Image.network(
@@ -268,7 +250,7 @@ class _TenantRequestStatusScreenState extends State<TenantRequestStatusScreen> {
               ),
               const VSpace(12),
 
-              // 🏘️ PROPERTY INFO & STATUS
+              // PROPERTY INFO & STATUS
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -323,7 +305,7 @@ class _TenantRequestStatusScreenState extends State<TenantRequestStatusScreen> {
 
               const VSpace(12),
 
-              // 📋 UNIT DETAILS
+              // UNIT DETAILS
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
@@ -361,7 +343,7 @@ class _TenantRequestStatusScreenState extends State<TenantRequestStatusScreen> {
 
               const VSpace(12),
 
-              // 📝 STATUS MESSAGE
+              // STATUS MESSAGE
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
@@ -398,10 +380,6 @@ class _TenantRequestStatusScreenState extends State<TenantRequestStatusScreen> {
       ),
     );
   }
-
-  // ==========================================
-  // UI HELPER METHODS - PRESENTATION LOGIC ONLY
-  // ==========================================
 
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {

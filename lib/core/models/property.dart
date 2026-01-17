@@ -29,7 +29,7 @@ class Property {
     );
   }
 
-  /// ONLY fields that are allowed to change
+  //ONLY fields that are allowed to change
   Property copyWith({
     String? title,
     String? city,

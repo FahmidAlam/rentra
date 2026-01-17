@@ -12,7 +12,7 @@ class ProfileRepository {
       if (data == null) return null;
       return UserProfile.fromMap(data);
     } catch (e) {
-      print('❌ Repository error: $e');
+      print('Repository error: $e');
       return null;
     }
   }
@@ -30,7 +30,7 @@ class ProfileRepository {
       
       return await remoteDataSource.updateProfile(userId, updates);
     } catch (e) {
-      print('❌ Repository error updating profile: $e');
+      print('Repository error updating profile: $e');
       return false;
     }
   }

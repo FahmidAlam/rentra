@@ -25,7 +25,7 @@ class PropertyController extends ChangeNotifier {
 
   get currentUser => null;
 
-  /// Fetch all properties
+  // Fetch all properties
   Future<void> fetchProperties() async {
     try {
       _isLoading = true;

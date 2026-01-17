@@ -1,26 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:rentra/core/theme/app_theme.dart';
 
-
-//! RESPONSIVE SIZED BOXES - For Spacing & Responsiveness
-
 // Responsive horizontal spacing
 class HSpace extends StatelessWidget {
-  final double value; // Base value (scales on responsive devices)
+  final double value; 
   
   const HSpace(this.value, {super.key});
 
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final scale = screenWidth > 600 ? 1.2 : 1.0; // Scale up on tablets
+    final scale = screenWidth > 600 ? 1.2 : 1.0; 
     return SizedBox(width: value * scale);
   }
 }
 
 // Responsive vertical spacing
 class VSpace extends StatelessWidget {
-  final double value; // Base value (scales on responsive devices)
+  final double value; 
   
   const VSpace(this.value, {super.key});
 
@@ -31,10 +28,6 @@ class VSpace extends StatelessWidget {
     return SizedBox(height: value * scale);
   }
 }
-
-
-//! CUSTOM BUTTONS - Reusable Button Components
-
 
 // Primary Action Button with Gradient
 class RentraPrimaryButton extends StatelessWidget {
@@ -132,7 +125,7 @@ class RentraSecondaryButton extends StatelessWidget {
   }
 }
 
-// Danger Action Button (Red)
+// Danger Action Button 
 class RentraDangerButton extends StatelessWidget {
   final String label;
   final VoidCallback onPressed;
@@ -163,135 +156,6 @@ class RentraDangerButton extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-// CUSTOM CARDS - Reusable Card Components
-
-
-// Property Card
-class RentraPropertyCard extends StatelessWidget {
-  final String imageUrl;
-  final String title;
-  final String location;
-  final String price;
-  final VoidCallback onTap;
-  final VoidCallback? onFavorite;
-  final bool isFavorite;
-
-  const RentraPropertyCard({
-    super.key,
-    required this.imageUrl,
-    required this.title,
-    required this.location,
-    required this.price,
-    required this.onTap,
-    this.onFavorite,
-    this.isFavorite = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Image with Favorite Button
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(16),
-                  ),
-                  child: Image.network(
-                    imageUrl,
-                    height: 150,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      height: 150,
-                      color: RentraColors.background,
-                      child: const Icon(Icons.image_not_supported),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: GestureDetector(
-                    onTap: onFavorite,
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.9),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        isFavorite ? Icons.favorite : Icons.favorite_border,
-                        color: RentraColors.error,
-                        size: 20,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            // Info Section
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: RentraColors.darkText,
-                    ),
-                  ),
-                  const VSpace(4),
-                  Row(
-                    children: [
-                      const Icon(Icons.location_on,
-                          size: 14, color: RentraColors.lightText),
-                      const HSpace(4),
-                      Expanded(
-                        child: Text(
-                          location,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: RentraColors.lightText,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const VSpace(8),
-                  Text(
-                    price,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: RentraColors.darkTeal,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
         ),
       ),
     );

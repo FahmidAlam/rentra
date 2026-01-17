@@ -9,7 +9,7 @@ class RentraColors {
 
   // Neutral Colors
   static const Color white = Colors.white;
-  static const Color background = Color(0xFFF8F9FA); // Light gray
+  static const Color background = Color(0xFFF8F9FA); 
   static const Color surface = Colors.white;
   static const Color darkText = Color(0xFF1A1A1A);
   static const Color lightText = Color(0xFF666666);

@@ -28,11 +28,8 @@ class _TenantRequestStatusScreenState extends State<TenantRequestStatusScreen> {
       setState(() => _noUser = true);
       return;
     }
-
-    // Delegate to controller - NO data fetching here
     _loadData(currentUser.id);
 
-    //  Listen to controller state changes
     _controller.addListener(_onControllerUpdate);
   }
 
@@ -42,12 +39,10 @@ class _TenantRequestStatusScreenState extends State<TenantRequestStatusScreen> {
     super.dispose();
   }
 
-  //  Simple controller method call - no business logic
   Future<void> _loadData(String tenantId) async {
     await _controller.loadTenanciesForTenant(tenantId);
   }
 
-  //  Handle controller state changes
   void _onControllerUpdate() {
     if (!mounted) return;
 

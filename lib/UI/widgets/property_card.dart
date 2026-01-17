@@ -28,7 +28,6 @@ class PropertyCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            //! Image takes remaining flexible space
             Expanded(
               child: Image.network(
                 property.imageUrl,
@@ -36,8 +35,6 @@ class PropertyCard extends StatelessWidget {
                 fit: BoxFit.cover,
               ),
             ),
-
-            //! Text section keeps minimum height
             Padding(
               padding: const EdgeInsets.all(8),
               child: Column(

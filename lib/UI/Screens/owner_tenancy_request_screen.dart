@@ -40,7 +40,7 @@ class _OwnerTenancyRequestsScreenState
     widget.controller.loadPendingForOwner(user.id);
   }
 
-  // ───────────────────────── PROFILE LOADING (SAFE) ──────────────────────────
+  // ───────────────────────── PROFILE LOADING  ─────────────────────────
 
   Future<void> _ensureTenantProfile(String tenantId) async {
     if (_tenantProfiles.containsKey(tenantId)) return;
@@ -129,8 +129,6 @@ class _OwnerTenancyRequestsScreenState
 
   Widget _buildRequestCard(dynamic req) {
     final tenant = _tenantProfiles[req.tenantId];
-    
-    // ✅ FIXED: Now using UserProfile properties instead of Map access
     final tenantName = tenant?.fullName ?? tenant?.email.split('@').first ?? 'Loading...';
     final tenantEmail = tenant?.email ?? 'Loading...';
     final tenantPhone = tenant?.phone ?? 'N/A';
@@ -143,7 +141,7 @@ class _OwnerTenancyRequestsScreenState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 👤 TENANT INFO
+            // TENANT INFO
             _TenantHeader(
               name: tenantName,
               email: tenantEmail,
@@ -303,9 +301,6 @@ class _OwnerTenancyRequestsScreenState
         ) ??
         false;
   }
-
-  // ───────────────────────────── HELPERS ─────────────────────────────
-
   String _formatDate(DateTime date) {
     const months = [
       'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',

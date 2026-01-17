@@ -174,7 +174,7 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
             ),
           ),
 
-          // 🔘 CLOSE BUTTON (Top Right)
+          //CLOSE BUTTON (Top Right)
           Positioned(
             top: 8,
             right: 8,

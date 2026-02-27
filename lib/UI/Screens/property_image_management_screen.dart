@@ -134,7 +134,7 @@ class _PropertyImageManagementScreenState
     );
   }
 
-  // ───────────────────────────── IMAGE CARD (NORMAL) ──────────────────────────
+  // ───────────────────────────── IMAGE CARD ──────────────────────────
 
   Widget _buildImageCard(PropertyImage image, int index) {
     return Card(
